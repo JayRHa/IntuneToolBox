@@ -56,7 +56,7 @@
                 </StackPanel>
             </Grid>
 
-            <Grid x:Name="GridFrame" VerticalAlignment="Top" Grid.Column="1" Margin="20,0,0,0" Visibility="Hidden">
+            <Grid x:Name="GridHomeFrame" VerticalAlignment="Top" Grid.Column="1" Margin="20,0,0,0" IsEnabled="False" Visibility="Hidden">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="48*"/>
                     <RowDefinition Height="169*"/>
@@ -114,6 +114,125 @@
                     <Label x:Name="LabelTotalUnknowDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
                 </Grid>
             </Grid>
+            <Grid x:Name="GridGroupManagement" Grid.Column="1" Visibility="Hidden">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="5" Orientation="Horizontal">
+
+                    <StackPanel Margin="5" Orientation="Horizontal">
+                        <Image Width="20" x:Name="ImgNewGroup" Height="18"/>
+                        <Button x:Name="ButtonNewGroup" Content="New group" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="5" Orientation="Horizontal">
+                        <Image Width="20" x:Name="ImgRefresh" Height="18"/>
+                        <Button x:Name="ButtonRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel  Orientation="Horizontal" Grid.Row="2" Margin="5">
+                    <StackPanel  Orientation="Horizontal" >
+                        <Image Width="20" x:Name="ImgMaxGroups" Height="18"/>
+                        <ComboBox x:Name="ComboboxPagingLimit" Grid.Row="0" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center" Width="57" IsReadOnly="True" FontSize="10" BorderBrush="White" Foreground="White" OpacityMask="#FF1B1A19"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
+                        <Image Width="20" x:Name="ImgGroupCount" Height="18"/>
+                        <Label x:Name="LabelCountGroups" Content="0 Groups" Foreground="White" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border BorderBrush="#A19F9D" BorderThickness="1" VerticalAlignment="Center" Grid.Row="1" Width="378" HorizontalAlignment="Left" Margin="10,0,0,0">
+                    <StackPanel Margin="5" Orientation="Horizontal">
+                        <Image Width="20" x:Name="ImgSearchBoxGroup" Height="18"/>
+                        <TextBox x:Name="TextboxSearchBoxGroup" Margin="3 0 0 0" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Center" Width="339" Background="#FF1B1A19" Foreground="White" BorderThickness="0"/>
+                    </StackPanel>
+                </Border>
+
+                <ListView x:Name="ListViewAllGroups" Margin="5,5,5,5" IsManipulationEnabled="True" Grid.Row="3" Background="#FF1B1A19" Foreground="White">
+                    <ListView.ContextMenu>
+                        <ContextMenu IsTextSearchEnabled="True">
+                            <MenuItem x:Name = 'ContextMenueCopy' Header = 'Copy to clipboard JSON'/>
+                            <Separator />
+                            <MenuItem Header = 'Device Actions'>
+                                <MenuItem x:Name = 'ContextMenueCopy1' Header = 'Sync'></MenuItem>
+                                <MenuItem x:Name = 'ContextMenueCopy2' Header = 'Reboot'></MenuItem>
+                            </MenuItem>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="130" Header="Name">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Background" Value="#FF1B1A19" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19"/>
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="15" Height="15" Source="{Binding GroupImage}"/>
+                                            <TextBlock Text="{Binding GroupName}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+
+                            <GridViewColumn Width="180" Header="Object Id" DisplayMemberBinding="{Binding GroupObjectId}">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Background" Value="#FF1B1A19" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                            </GridViewColumn>
+
+
+                            <GridViewColumn Width="180" Header="Membership type" DisplayMemberBinding="{Binding GroupMembershipType}">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Background" Value="#FF1B1A19" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                            </GridViewColumn>
+
+
+
+                            <GridViewColumn Width="180" Header="Email" DisplayMemberBinding="{Binding GroupEmail}">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Background" Value="#FF1B1A19" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                            </GridViewColumn>
+
+                            <GridViewColumn Width="180" Header="Source" DisplayMemberBinding="{Binding GroupSource}">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="{x:Type GridViewColumnHeader}">
+                                        <Setter Property="Background" Value="#FF1B1A19" />
+                                        <Setter Property="Foreground" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
         </Grid>
 
         <Grid x:Name="GridHeader" Height="50" VerticalAlignment="Top" Background="#252423">
@@ -144,5 +263,6 @@
                 </Button>
             </Grid>
         </Grid>
+
     </Grid>
 </Window>
