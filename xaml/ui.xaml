@@ -82,18 +82,18 @@
                         <ColumnDefinition Width="25*"/>
                         <ColumnDefinition Width="33*"/>
                     </Grid.ColumnDefinitions>
-                    <Label x:Name="LabelTotalDevices" Content="Total devices" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelIntuneOnly" Content="Intune only devices" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelHybrideDevices" Content="Hybride devices" HorizontalAlignment="Left" Margin="5,70,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelCompliante" Content="Compliante devices" HorizontalAlignment="Left" Margin="5,100,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelUncompliante" Content="Uncompliante devices" HorizontalAlignment="Left" Margin="5,130,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalDevices" Content="Total devices" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelIntuneOnly" Content="Intune only devices" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelHybrideDevices" Content="Hybride devices" HorizontalAlignment="Left" Margin="5,70,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelCompliante" Content="Compliante devices" HorizontalAlignment="Left" Margin="5,100,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelUncompliante" Content="Uncompliante devices" HorizontalAlignment="Left" Margin="5,130,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
 
 
-                    <Label x:Name="LabelTotalDevicesState" Content="0 Devices in your tenant" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelIntuneOnlyState" Content="0 Mdm only managed devices" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelHybrideDevicesState" Content="0 Co-Managed devices" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelComplianteState" Content="0 Compliant devices" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelUncomplianteState" Content="0 Uncompliante devices" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalDevicesState" Content="0 Devices in your tenant" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelIntuneOnlyState" Content="0 Mdm only managed devices" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelHybrideDevicesState" Content="0 Co-Managed devices" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelComplianteState" Content="0 Compliant devices" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelUncomplianteState" Content="0 Uncompliante devices" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
                 </Grid>
                 <Border Margin="10,10,0,0" BorderBrush="#A19F9D" BorderThickness="0,0,0,1" Grid.Row="2" >
                     <Label x:Name="LabelDeviceCount" Content="Device Count" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
@@ -103,18 +103,18 @@
                         <ColumnDefinition Width="25*"/>
                         <ColumnDefinition Width="33*"/>
                     </Grid.ColumnDefinitions>
-                    <Label x:Name="LabelTotalWindowsDevices" Content="Windows devices" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelTotalIosDevices" Content="Ios devices" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelTotalAndroidDevices" Content="Android devices" HorizontalAlignment="Left" Margin="5,70,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelTotalMacOSDevices" Content="MacOS devices" HorizontalAlignment="Left" Margin="5,100,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
-                    <Label x:Name="LabelTotalUnknowDevices" Content="Unknow devices" HorizontalAlignment="Left" Margin="5,130,0,0" VerticalAlignment="Top" Height="24"  Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalWindowsDevices" Content="Windows devices" HorizontalAlignment="Left" Margin="5,10,0,0" VerticalAlignment="Top"  Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalIosDevices" Content="Ios devices" HorizontalAlignment="Left" Margin="5,40,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalAndroidDevices" Content="Android devices" HorizontalAlignment="Left" Margin="5,70,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalMacOSDevices" Content="MacOS devices" HorizontalAlignment="Left" Margin="5,100,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
+                    <Label x:Name="LabelTotalUnknowDevices" Content="Unknow devices" HorizontalAlignment="Left" Margin="5,130,0,0" VerticalAlignment="Top" Foreground="#A19F9D"/>
 
 
-                    <Label x:Name="LabelTotalWindowsDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelTotalIosDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelTotalAndroidDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelTotalMacOSDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
-                    <Label x:Name="LabelTotalUnknowDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Height="24" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalWindowsDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalIosDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalAndroidDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalMacOSDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
+                    <Label x:Name="LabelTotalUnknowDevicesState" Content="0 devices" HorizontalAlignment="Left" Margin="10,130,0,0" VerticalAlignment="Top" Foreground="#2089F5" Grid.Column="1"/>
                 </Grid>
             </Grid>
             <Grid x:Name="GridGroupManagement" Grid.Column="1" Visibility="Hidden">
@@ -183,8 +183,6 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-
-
                             <GridViewColumn Width="215" Header="Object Id" DisplayMemberBinding="{Binding GroupObjectId}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -194,8 +192,6 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-
-
                             <GridViewColumn Width="130" Header="Membership type" DisplayMemberBinding="{Binding GroupMembershipType}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -206,9 +202,6 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-
-
-
                             <GridViewColumn Width="170" Header="Email" DisplayMemberBinding="{Binding GroupEmail}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -218,7 +211,6 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-
                             <GridViewColumn Width="90" Header="Source" DisplayMemberBinding="{Binding GroupSource}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
@@ -270,15 +262,13 @@
                             <ColumnDefinition Width="289*"/>
                             <ColumnDefinition Width="360*"/>
                         </Grid.ColumnDefinitions>
-
                         <StackPanel Margin="5,5,4,5" Orientation="Vertical" Grid.Row="1">
-                            <Label x:Name="LabelMemberShipType" Content="Membership type" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="24"  Foreground="White"/>
-                            <Label x:Name="LabelSource" Content="Source" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,7,0,0"/>
-                            <Label x:Name="LabelType" Content="Type" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,7,0,0"/>
-                            <Label x:Name="LabelObjectId" Content="Object Id" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,7,0,0"/>
-                            <Label x:Name="LabelCreatedAt" Content="Created at" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,7,0,0"/>
+                            <Label x:Name="LabelMemberShipType" Content="Membership type" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="White"/>
+                            <Label x:Name="LabelSource" Content="Source" HorizontalAlignment="Left"  VerticalAlignment="Top" Foreground="White" Margin="0,8,0,0"/>
+                            <Label x:Name="LabelType" Content="Type" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,8,0,0"/>
+                            <Label x:Name="LabelObjectId" Content="Object Id" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,8,0,0"/>
+                            <Label x:Name="LabelCreatedAt" Content="Created at" HorizontalAlignment="Left" VerticalAlignment="Top"  Foreground="White" Margin="0,8,0,0"/>
                         </StackPanel>
-
                         <StackPanel Margin="5,5,4,5" Orientation="Vertical" Grid.Row="1" Grid.Column="1">
                             <Label x:Name="LabelMemberShipTypeValue" Content="" HorizontalAlignment="Stretch"  VerticalAlignment="Top"  Foreground="White" BorderThickness="1" BorderBrush="White" Background="#FF292929" Margin="0,0,10,0"/>
                             <Label x:Name="LabelSourceValue" Content="" HorizontalAlignment="Stretch"  VerticalAlignment="Top" Foreground="White" BorderThickness="1" BorderBrush="White" Margin="0,4,10,0" Background="#FF292929"/>
@@ -288,7 +278,6 @@
                         </StackPanel>
                     </Grid>
                     <StackPanel Orientation="Horizontal" Grid.Row="3" Margin="0,4,0,0">
-
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <Image Width="20" x:Name="ImgTotalGroupMembers" Height="18" VerticalAlignment="Top" Margin="0,7,0,0" />
                             <Label x:Name="LabelTotalGroupMembers" Content="0 Total" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,5,0,0"/>
