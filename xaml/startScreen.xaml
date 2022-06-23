@@ -1,0 +1,26 @@
+<Window 
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Intune Tool box" 
+        Height="150" Width="420"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" 
+        ShowInTaskbar="False" Topmost="True" 
+        ResizeMode="NoResize" Background="#FF1B1A19" Foreground="White">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Column="1" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Name="TextTitelStartScreen" Text="" FontSize="18" FontWeight="Bold" VerticalAlignment="Top"/>
+            <TextBlock Name="TextStartScreen" Text="" Grid.Row="1" VerticalAlignment="Center" />
+        </Grid>
+    </Grid>
+</Window>
