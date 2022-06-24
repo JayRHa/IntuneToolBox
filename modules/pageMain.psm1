@@ -6,10 +6,15 @@ Helper for main page
 .NOTES
   Author: Jannik Reinhard
 #>
-function Get-ModuleVersion
-{
-    '1.0.0'
-}
+
+########################################################################################
+###################################### Functions #######################################
+########################################################################################
+
+
+########################################################################################
+################################### User Interface #####################################
+########################################################################################
 function Get-MainFrame{
     $deviceManagementOverview = Get-MgDeviceManagementManagedDeviceOverview
     $complianceOverview = Get-MgDeviceManagementDeviceCompliancePolicyDeviceStateSummary
@@ -28,6 +33,5 @@ function Get-MainFrame{
     $WPFLabelTotalMacOSDevicesState.Content = "$($deviceManagementOverview.deviceOperatingSystemSummary.macOSCount) devices"
     $WPFLabelTotalUnknowDevicesState.Content = "$($deviceManagementOverview.deviceOperatingSystemSummary.unknownCount) devices"
     
-
     $WPFGridHomeFrame.Visibility = 'Visible'
 }

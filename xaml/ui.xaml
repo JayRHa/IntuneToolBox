@@ -5,11 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:IntuneToolBox"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:dialogs="clr-namespace:SimpleDialogs.Controls;assembly=SimpleDialogs"
         mc:Ignorable="d"
-        Title="Intune Tool Box- V 1.0 by Jannik Reinhard" Height="500" Width="900" MinWidth="900" MinHeight="500" MaxWidth="900" MaxHeight="500"
+        Title="Intune Tool Box- V 1.0 by Jannik Reinhard" Height="550" Width="1000" MinWidth="1000" MinHeight="550" MaxWidth="1000" MaxHeight="550"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
+        
+        <Window.Resources>
+            <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                    <ResourceDictionary Source="pack://application:,,,/SimpleDialogs;component/Themes/Dark.xaml" />
+                    <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                    <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                    <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Themes/Dark.Steel.xaml"/>
+                </ResourceDictionary.MergedDictionaries>
+                <SolidColorBrush x:Key="ListViewBackground" Color="Transparent" />
+            </ResourceDictionary>
+        </Window.Resources>	
 
+
+
+
+<Grid>
     <Grid x:Name="GridMain" Background="#FF1B1A19">
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
@@ -141,7 +158,7 @@
                 <StackPanel  Orientation="Horizontal" Grid.Row="2" Margin="5">
                     <StackPanel  Orientation="Horizontal" >
                         <Image Width="20" x:Name="ImgMaxGroups" Height="18"/>
-                        <ComboBox x:Name="ComboboxGridCount" Grid.Row="0" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center" Width="57" IsReadOnly="True" FontSize="10" BorderBrush="White" Foreground="Black" OpacityMask="#FF1B1A19"/>
+                        <ComboBox x:Name="ComboboxGridCount" Grid.Row="0" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center" Width="57" IsReadOnly="True" FontSize="10" BorderBrush="White" Foreground="White" OpacityMask="#FF1B1A19"/>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Margin="10,0,0,0">
@@ -157,7 +174,7 @@
                     </StackPanel>
                 </Border>
 
-                <ListView x:Name="ListViewAllGroups" Margin="5,5,5,5" IsManipulationEnabled="True" Grid.Row="3" Background="#FF1B1A19" Foreground="White" SelectionMode="Single">
+                <ListView x:Name="ListViewAllGroups" Margin="5,5,5,5" IsManipulationEnabled="True" Grid.Row="3" Foreground="White" SelectionMode="Single">
                     <ListView.ContextMenu>
                         <ContextMenu IsTextSearchEnabled="True">
                             <MenuItem x:Name = 'CbGroupOpen' Header = 'Open Group'/>
@@ -166,7 +183,7 @@
                     </ListView.ContextMenu>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Width="180" Header="Name">
+                            <GridViewColumn Width="200" Header="Name">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
                                         <Setter Property="Background" Value="#FF1B1A19" />
@@ -174,16 +191,21 @@
                                         <Setter Property="BorderBrush" Value="#FF1B1A19"/>
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
-                                <GridViewColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Width="15" Height="15" Source="{Binding GroupImage}"/>
-                                            <TextBlock Text="{Binding GroupName}"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </GridViewColumn.CellTemplate>
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0" >
+                                                <Grid Width="30" Height="30" Background="{Binding GroupColor}"  >
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition/>
+                                                    </Grid.RowDefinitions>
+                                                    <TextBlock Text="{Binding GroupNameShort}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Grid>
+                                                <TextBlock Text="{Binding GroupName}" Margin="5,0,0,0" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="215" Header="Object Id" DisplayMemberBinding="{Binding GroupObjectId}">
+                            <GridViewColumn Header="Object Id" DisplayMemberBinding="{Binding GroupObjectId}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
                                         <Setter Property="Background" Value="#FF1B1A19" />
@@ -192,7 +214,7 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-                            <GridViewColumn Width="130" Header="Membership type" DisplayMemberBinding="{Binding GroupMembershipType}">
+                            <GridViewColumn Header="Membership type" DisplayMemberBinding="{Binding GroupMembershipType}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
                                         <Setter Property="Background" Value="#FF1B1A19" />
@@ -202,7 +224,7 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-                            <GridViewColumn Width="170" Header="Email" DisplayMemberBinding="{Binding GroupEmail}">
+                            <GridViewColumn  Header="Email" DisplayMemberBinding="{Binding GroupEmail}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
                                         <Setter Property="Background" Value="#FF1B1A19" />
@@ -211,7 +233,7 @@
                                     </Style>
                                 </GridViewColumn.HeaderContainerStyle>
                             </GridViewColumn>
-                            <GridViewColumn Width="90" Header="Source" DisplayMemberBinding="{Binding GroupSource}">
+                            <GridViewColumn Header="Source" DisplayMemberBinding="{Binding GroupSource}">
                                 <GridViewColumn.HeaderContainerStyle>
                                     <Style TargetType="{x:Type GridViewColumnHeader}">
                                         <Setter Property="Background" Value="#FF1B1A19" />
@@ -224,6 +246,7 @@
                     </ListView.View>
                 </ListView>
             </Grid>
+            <!-- Group overview-->
             <Grid x:Name="GridGroupView" Grid.Column="1" Visibility="Hidden">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="191*"/>
@@ -231,10 +254,10 @@
                 </Grid.ColumnDefinitions>
                 <Grid x:Name="GridGroupViewOverview" Grid.Column="1" >
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="67"/>
-                        <RowDefinition Height="76*"/>
-                        <RowDefinition Height="231*"/>
-                        <RowDefinition Height="60*"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
                     </Grid.RowDefinitions>
                     <StackPanel Margin="5,5,4,5" Orientation="Horizontal">
                         <StackPanel Margin="5" Orientation="Horizontal">
@@ -293,38 +316,92 @@
                             <Label x:Name="LabelGroupMembersDevices" Content="0 Device(s)" HorizontalAlignment="Left" VerticalAlignment="Top" Height="24"  Foreground="White" Margin="0,5,0,0"/>
                         </StackPanel>
                     </StackPanel>
-                    <Image x:Name="ImgGroupOverviewPicture" HorizontalAlignment="Left" Width="70" Margin="0,5,0,5" Grid.Row="1"/>
-                    <Label x:Name="LableGroupOverviewName" Content="" HorizontalAlignment="Left" Margin="90,3,0,0"  VerticalAlignment="Top" Foreground="White" FontWeight="Bold" FontSize="16" Height="32" Width="440" Grid.Row="1"/>
+                    <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="7,0,0,0">
+                        <Grid x:Name="GridGroupPicture" Width="70" Height="70" Background="Red"  Margin="0,5,0,5"  HorizontalAlignment="Left">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <TextBlock x:Name="TextGroupnameShort" Text="" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" FontWeight="Bold"/>
+                        </Grid>
+                        <Label x:Name="LableGroupOverviewName" Content="" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" FontSize="16" Height="32" Width="440" Grid.Row="1"/>
+                    </StackPanel>
                 </Grid>
                 <StackPanel Orientation="Vertical">
                     <Button x:Name="ButtonNavigationGroupsBack" Content="Groups" Background="#FF1B1A19" Height="26" Foreground="#2089F5" HorizontalContentAlignment="Stretch" BorderThickness="0,0,0,1" BorderBrush="#FF383434" Width="181"/>
                     <ListView x:Name="ListViewGroupMenu" Foreground="#323130" Background="#FF1B1A19" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0,0,0,1" SelectedIndex="0" Margin="0,5,0,0">
                         <ListViewItem x:Name="ItemGroupsOverview" Height="40" IsSelected="True" IsEnabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Image Width="20" x:Name="ImgGroupNavigationOverview" Height="18"/>
+                                <Image Width="20" x:Name="ImgGroupNavigationOverview" Height="20"/>
                                 <Label x:Name="LabelGroupNavigationOverview" Content="Overview" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
                             </StackPanel>
                         </ListViewItem>
                         <ListViewItem x:Name="ItemGroupsMember" Height="40" IsEnabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Image Width="20" x:Name="ImgGroupNavigationMember" Height="18"/>
+                                <Image Width="20" x:Name="ImgGroupNavigationMember" Height="20"/>
                                 <Label x:Name="LabelGroupNavigationMember" Content="Members" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
                             </StackPanel>
                         </ListViewItem>
                         <ListViewItem x:Name="ItemGroupsPolicies" Height="40" IsEnabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Image Width="20" x:Name="ImgGroupNavigationPolicies" Height="18"/>
+                                <Image Width="20" x:Name="ImgGroupNavigationPolicies" Height="20"/>
                                 <Label x:Name="LabelGroupNavigationPolicies" Content="Configuration Profiles" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
                             </StackPanel>
                         </ListViewItem>
                         <ListViewItem x:Name="ItemGroupsApps" Height="40" IsEnabled="True">
                             <StackPanel Orientation="Horizontal">
-                                <Image Width="20" x:Name="ImgGroupNavigationApplications" Height="18"/>
+                                <Image Width="20" x:Name="ImgGroupNavigationApplications" Height="20"/>
                                 <Label x:Name="LabelGroupNavigationApplications" Content="Apps" HorizontalAlignment="Left" VerticalAlignment="Top"  Foreground="White" Margin="0,5,0,0"/>
                             </StackPanel>
                         </ListViewItem>
                     </ListView>
                 </StackPanel>
+            </Grid>
+            <!-- Add new group -->
+            <Grid x:Name="GridGroupCreation" Grid.Column="1" Visibility="Hidden">
+                <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="60"/>
+                </Grid.RowDefinitions>
+                    <StackPanel Orientation="Vertical">
+                        <Button x:Name="ButtonNavigationGroupsBack2" Content="Home > Groups >"  Foreground="#2089F5" HorizontalContentAlignment="Stretch" BorderThickness="0,0,0,1" BorderBrush="#FF383434" HorizontalAlignment="Left"/>
+                        <Border Margin="10,0,10,0" BorderBrush="#A19F9D" BorderThickness="0,0,0,1">
+                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Image x:Name="ImgGroupGreation" Height="30" Width="30"/>
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="6,0,0,0">
+                                    <Label x:Name="LabelGroupCreationGroupName" Content="dggdgsfddfgds" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" FontSize="25"/>
+                                    <Label x:Name="LabelGroupCreationAction" Content="dggdgsfddfgds" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Gray" FontSize="12" Margin="0,-3,0,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Orientation="Vertical" Grid.Row="1" Margin="0,4,0,0">
+                        <StackPanel x:Name="StackPanelGroupMigrationType" Orientation="Vertical" Visibility="Collapsed">
+                            <Label x:Name="LabelGroupMigrationType" Content="Migration type *" HorizontalAlignment="Left" VerticalAlignment="Top"  Foreground="White" Margin="0,5,0,0"/>
+                            <ComboBox x:Name="ComboboxMigrationType" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center"  IsReadOnly="True" Width="500" FontSize="10" BorderBrush="Gray" Foreground="White" OpacityMask="#FF1B1A19" BorderThickness="1,1,1,1"/>
+                        </StackPanel>
+                        <StackPanel x:Name="StackPanelGroupType" Orientation="Vertical" Visibility="Visible">
+                            <Label x:Name="LabelGroupType" Content="Group type *" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
+                            <ComboBox x:Name="ComboboxGroupType" HorizontalAlignment="Left" Margin="5,0,0,0" Background="#FF1B1A19" VerticalAlignment="Center"  IsReadOnly="True" Width="500" FontSize="10" BorderBrush="Gray" Foreground="White" OpacityMask="#FF1B1A19" BorderThickness="1,1,1,1"/>
+                        </StackPanel>
+                        <StackPanel x:Name="StackPanelGroupName" Orientation="Vertical" Visibility="Visible">
+                            <Label x:Name="LabelGroupName" Content="Group name *" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
+                            <TextBox x:Name="TextboxGroupName" Margin="3 0 0 0" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Background="#FF1B1A19" Width="500" FontSize="10" BorderBrush="Gray" Foreground="White" OpacityMask="#FF1B1A19" BorderThickness="1,1,1,1"/>
+                        </StackPanel>
+                        <StackPanel x:Name="StackPanelGroupDescription" Orientation="Vertical" Visibility="Visible">
+                            <Label x:Name="LabelGroupDescription" Content="Group description" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
+                            <TextBox x:Name="TextboxGroupDescription" Margin="3 0 0 0" HorizontalAlignment="Left" TextWrapping="Wrap" VerticalAlignment="Center" Background="#FF1B1A19" Width="500" FontSize="10" BorderBrush="Gray" Foreground="White" OpacityMask="#FF1B1A19" BorderThickness="1,1,1,1"/>
+                        </StackPanel>
+                        <StackPanel x:Name="StackPanelOsFilter" Orientation="Vertical" Visibility="Collapsed"> 
+                            <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,10,0,0">
+                                <CheckBox x:Name="CbWindows" Content="Windows" Background="#FF1B1A19" Foreground="White" Margin="10,0,0,0"/>
+                                <CheckBox x:Name="CbMacOs" Content="MacOs" Background="#FF1B1A19" Foreground="White" Margin="10,0,0,0"/>
+                                <CheckBox x:Name="CbAndroid" Content="Android" Background="#FF1B1A19" Foreground="White" Margin="10,0,0,0"/>
+                                <CheckBox x:Name="CbIOS" Content="iOS" Background="#FF1B1A19" Foreground="White" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                <Button x:Name="ButtonGroupCreate" Content="Create" Background="#2089F5" Foreground="Black" HorizontalContentAlignment="Center" HorizontalAlignment="Left" Grid.Row="2" Margin="10,0,0,0" Height="28" BorderThickness="0" Width="90" IsEnabled="False"/>
             </Grid>
         </Grid>
 
@@ -356,6 +433,7 @@
                 </Button>
             </Grid>
         </Grid>
-
+    </Grid>
+    <dialogs:DialogContainer Name="dialog"/>
     </Grid>
 </Window>

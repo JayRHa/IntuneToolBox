@@ -7,23 +7,14 @@ Handling of the WPF UI
   Author: Jannik Reinhard
 #>
 
-##
-function Get-ModuleVersion
-{
-    '1.0.0'
-}
-
 function New-XamlScreen{
     param (
         [Parameter(Mandatory = $true)]
         [String]$xamlPath
     )
 
-    [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
-    Add-Type -AssemblyName PresentationFramework
 
     $inputXML = Get-Content $xamlPath
-    [void][System.Reflection.Assembly]::LoadWithPartialName('presentationframework')
     [xml]$xaml = $inputXML -replace 'mc:Ignorable="d"', '' -replace "x:N", 'N' -replace '^<Win.*', '<Window'
     $reader = (New-Object System.Xml.XmlNodeReader $xaml)
 
@@ -46,12 +37,71 @@ Function Hide-All{
     $WPFGridHomeFrame.Visibility = 'Hidden'
     $WPFGridGroupManagement.Visibility = 'Hidden'
     $WPFGridGroupView.Visibility = 'Hidden'
+    $WPFGridGroupCreation.Visibility = 'Hidden'
+}
+
+function Show-MessageBoxWindow{
+    param (
+        [String]$titel="Intune Tool Box",
+        [Parameter(Mandatory = $true)]
+        [String]$text,
+        [String]$button1text="",
+        [String]$button2text=""
+
+    )
+
+    if($button1text -eq ""){$global:button1.Visibility = "Hidden"}else{$global:button1.Visibility = "Visible"}
+    if($button2text -eq ""){$global:button2.Visibility = "Hidden"}else{$global:button2.Visibility = "Visible"}
+
+    $global:messageScreenTitle.Text = $titel
+    $global:messageScreenText = $text
+    $global:button1.Content = "Yes"
+    $global:button2.Content = "No"
+    $global:messageScreen.Show() | Out-Null
+}
+
+function Show-MessageBoxInWindow{
+    param (
+        [String]$titel="Intune Tool Box",
+        [Parameter(Mandatory = $true)]
+        [String]$text,
+        [String]$button1text="",
+        [String]$button2text="",
+        [String]$messageSeverity="Information"
+
+    )
+
+    $global:message = [SimpleDialogs.Controls.MessageDialog]::new()		    
+    $global:message.MessageSeverity = $messageSeverity
+	$global:message.Title = $titel
+    if($button1text -eq ""){$global:message.ShowFirstButton = $false}else{$global:message.ShowSecondButton = $true}
+    if($button2text -eq ""){$message.ShowSecondButton = $false}else{$global:message.ShowSecondButton = $true}
+    $global:message.FirstButtonContent = $button1text
+    $global:message.SecondButtonContent = $button2text
+
+	$global:message.TitleForeground = "White"
+    $global:message.Background = "#FF1B1A19"
+	$global:message.Message = $text	
+	[SimpleDialogs.DialogManager]::ShowDialogAsync($($global:formMainForm), $global:message)
+
+	$global:message.Add_ButtonClicked({
+		$buttonArgs  = [SimpleDialogs.Controls.DialogButtonClickedEventArgs]$args[1]	
+		$buttonValues = $buttonArgs.Button
+		If($buttonValues -eq "FirstButton")
+			{
+				return $null
+			}
+		ElseIf($buttonValues -eq "SecondButton")
+			{
+                return $null
+			}				
+	})
+    return $null
 }
 
 function Set-UiAction{
-
     Add-XamlEvent -object $WPFButtonLogIn -event "Add_Click" -scriptBlock {Set-LoginOrLogout}
-
+    
     Add-XamlEvent -object $WPFListViewMenu -event "Add_SelectionChanged" -scriptBlock {
 
         if(-not $global:auth) {return}
@@ -69,8 +119,10 @@ function Set-UiAction{
         }
     }
     
-    Add-XamlEvent -object $WPFTextboxSearchBoxGroup -event "Add_TextChanged" -scriptBlock {Search-Group -searchString $($WPFTextboxSearchBoxGroup.Text)
+    Add-XamlEvent -object $WPFTextboxSearchBoxGroup -event "Add_TextChanged" -scriptBlock {
+        Search-Group -searchString $($WPFTextboxSearchBoxGroup.Text)
     }
+
     Add-XamlEvent -object $WPFComboboxGridCount -event "Add_SelectionChanged" -scriptBlock {Add-InitGroupsGrid -clearDevicesList $false}
 
     Add-XamlEvent -object $WPFButtonOpenMenu -event "Add_Click" -scriptBlock {
@@ -94,9 +146,12 @@ function Set-UiAction{
 
     Add-XamlEvent -object $WPFCbGroupOpen -event "Add_Click" -scriptBlock {
         $global:SelectedGroupId = $WPFListViewAllGroups.SelectedItem
-        Hide-All
-        Get-GroupOverView -groupId $($global:SelectedGroupId).GroupObjectId
-        $WPFGridGroupView.Visibility = 'Visible'
+        Open-GroupView -groupId $global:SelectedGroupId.GroupObjectId | Out-Null
+    }
+
+    Add-XamlEvent -object $WPFListViewAllGroups -event "Add_MouseDoubleClick" -scriptBlock {
+        $global:SelectedGroupId = $WPFListViewAllGroups.SelectedItem
+        Open-GroupView -groupId $global:SelectedGroupId.GroupObjectId | Out-Null
     }
 
     Add-XamlEvent -object $WPFButtonRefresh -event "Add_Click" -scriptBlock {
@@ -105,35 +160,107 @@ function Set-UiAction{
     }
 
     Add-XamlEvent -object $WPFButtonNewGroup -event "Add_Click" -scriptBlock {
-        # Hide-All
-        # $WPFGridGroupView.Visibility = 'Visible'
+        $WPFLabelGroupCreationAction.Content = "New Group"
+        $global:GroupCreationMode = "new"
+        Get-GroupCreationView  -groupCreationType $global:GroupCreationMode
     }
 
     Add-XamlEvent -object $WPFButtonMigrateGroup -event "Add_Click" -scriptBlock {
-
+        $WPFLabelGroupCreationAction.Content = "Migrate Group"
+        $global:GroupCreationMode = "migrate"
+        Get-GroupCreationView  -groupCreationType $global:GroupCreationMode
     }
 
     Add-XamlEvent -object $WPFButtonCopyGroup -event "Add_Click" -scriptBlock {
+        $WPFLabelGroupCreationAction.Content = "Copy Group"  
+        $global:GroupCreationMode = "copy"
+        Get-GroupCreationView  -groupCreationType $global:GroupCreationMode
 
     }
-
-    
 
     Add-XamlEvent -object $WPFButtonSyncAllDevices -event "Add_Click" -scriptBlock {
         Sync-AllDevicesInGroup -groupId $($global:SelectedGroupId).GroupObjectId
     }
 
     Add-XamlEvent -object $WPFButtonDeleteGroup -event "Add_Click" -scriptBlock {
-        Hide-All
-        $WPFGridGroupManagement.Visibility = 'Visible'
-        Remove-MgGroup -GroupId $($global:SelectedGroupId).GroupObjectId
-        Add-InitGroupsGrid
+       Show-MessageBoxInWindow -text "Are you shure that you want to delete the group?" -button1text "Yes" -button2text "No"
+       $global:message.Add_ButtonClicked({
+            $buttonArgs  = [SimpleDialogs.Controls.DialogButtonClickedEventArgs]$args[1]	
+            $buttonValues = $buttonArgs.Button
+            If($buttonValues -eq "FirstButton")
+                {
+                    Hide-All
+                    $WPFGridGroupManagement.Visibility = 'Visible'
+                    Remove-MgGroup -GroupId $($global:SelectedGroupId).GroupObjectId
+                    Add-InitGroupsGrid
+                }				
+        })
     }
 
     Add-XamlEvent -object $WPFButtonNavigationGroupsBack -event "Add_Click" -scriptBlock {
         Hide-All
         $WPFGridGroupManagement.Visibility = 'Visible'
         Add-InitGroupsGrid
+    }
+
+    Add-XamlEvent -object $WPFButtonNavigationGroupsBack2 -event "Add_Click" -scriptBlock {
+        Hide-All
+        $WPFGridGroupManagement.Visibility = 'Visible'
+        Add-InitGroupsGrid
+    }
+
+    Add-XamlEvent -object $WPFTextboxGroupName -event "Add_TextChanged" -scriptBlock {
+        if($WPFTextboxGroupName.Text -eq ""){$WPFButtonGroupCreate.IsEnabled = $false}else {$WPFButtonGroupCreate.IsEnabled = $true}
+    }
+
+    Add-XamlEvent -object $WPFButtonGroupCreate -event "Add_Click" -scriptBlock {
+        switch ($global:GroupCreationMode) {
+            new {
+                Add-MgtGroup -groupName $WPFTextboxGroupName.Text -groupDescription $WPFTextboxGroupDescription.Text 
+            }
+            copy {
+                Add-MgtGroup -groupName $WPFTextboxGroupName.Text -groupDescription $WPFTextboxGroupDescription.Text -groupMember $global:AllGroupMember
+            }
+            migrate {
+                Set-MigrateAadGroup -groupName $WPFTextboxGroupName.Text -groupDescription $WPFTextboxGroupDescription.Text -groupMember $global:AllGroupMember -migrationType $WPFComboboxMigrationType.SelectedIndex
+            }
+        }
+        Hide-All
+        $WPFGridGroupManagement.Visibility = 'Visible'
+        Add-InitGroupsGrid
+    }
+}
+function Get-GroupCreationView{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupCreationType
+    )
+    Hide-All
+    $WPFGridGroupCreation.Visibility = 'Visible'
+    $WPFStackPanelGroupType.Visibility = 'Visible'
+    $WPFStackPanelGroupName.Visibility = 'Visible'
+    $WPFStackPanelGroupDescription.Visibility = 'Visible'
+    $WPFStackPanelOsFilter.Visibility = 'Collapsed'
+    
+    $WPFCbWindows.IsChecked= $false
+    $WPFCbMacOs.IsChecked= $false
+    $WPFCbAndroid.IsChecked= $false
+    $WPFCbIOS.IsChecked= $false
+
+    $WPFComboboxMigrationType.SelectedIndex = 0
+    $WPFComboboxGroupType.SelectedIndex = 0
+    $WPFTextboxGroupName.Text = ""
+    $WPFTextboxGroupDescription.Text = ""
+    $WPFLabelGroupCreationGroupName.Content = ""
+    if($groupCreationType -eq 'migrate'){
+        $WPFStackPanelGroupMigrationType.Visibility = 'Visible'
+        $WPFLabelGroupCreationGroupName.Content = $global:SelectedGroupId.GroupName
+        $WPFStackPanelOsFilter.Visibility = 'Visible'
+    }else{
+        $WPFStackPanelGroupMigrationType.Visibility = 'Collapsed'
+    }
+    if($groupCreationType -eq 'migrate' -or $groupCreationType -eq 'copy'){
+        $WPFLabelGroupCreationGroupName.Content = $global:SelectedGroupId.GroupName
     }
 }
 
@@ -156,43 +283,47 @@ function Set-UserInterface {
     $iconGroupMemberUser = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAABUElEQVRIie2TP0tCYRSHn+O9FhoIRVsKkdAQga2NSeQ36Bu0tBooTY0N/pmaoj6AfYIC98aGFsEytNpEcLiZeu9pqMhM7xWVJp/x/M45D+/L+8IMD2SUpmjWijgdzavI3mdFi4KdrqRCpYkF0awVsbt6Byz1RQ3DlNhDMlhzm/d5CZyO5gcsB1i0u5r1mvcU/FzLoJDExAJXBJ2CQIsu2fXEAsFOA40BUd3El5xYUEmFSoYpMeAKpYnSBC2YyFY5FXz2mp/hyfCfXFBj7bG17ficeKdrn70ch+q98Xqmudx2jEMHKVZXA7fsiz2SIJzTgNl5OwA9AiIACmVE0uJ/LwJIe35X0VMg+jVWFZGMWoHzpxNpDRWEc9aK2dYbhA3vw/9F4d6BRC218Ppd+/VMzbZejrscQGDTgIvemq+vY2fc5T3EhwvAPwXBnJtgxv/zAQJ3aVeO+h5sAAAAAElFTkSuQmCC"
     $iconGroupMemberDevices = "iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+gvaeTAAABMUlEQVQ4ja2UsUoDQRRFz2QnUSNZ1EKNTdIIFvoBgr2VnR8hWNrkF2wEv8De0loEK3sj2ghaiASLKOrGTXbmjUVcCKybHUJuMwx35rz73sDAlKRo3T3Xw3JDl7LmWi2gsaC57QyIEpfxv/rCR8+ecLx5pCuBalwdNidKcf0YcXD+2gTQKLAyEQc3ElIDWFGFly7bfZ7eDAD1mqJagfsO7K+v7M6ddR80gGTbz+gzEt6/hwfTFWCmFMyLY+MvUTHI4LAuv6I3yArTAjlMEUg8hm3cEJYPcmA9hm0EknEgB3QjS1AQKjaWRPJnoGi1b0AtFyXaWgpXF2d1NR/kqe3Tlwsce3m+9gX1Exlb1hsUiyUlKaAcKAYjr/TP55GTyLif2AqxFeqhYqepSfexlZ4vp1C/cTCFm76WjAIAAAAASUVORK5CYII="
     $iconGroupNavigationPolicies = "iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+gvaeTAAACJ0lEQVQ4jYWST0hUURTGf/e+J07+w5oIF0ZFQdIigv6sIjIXRi6CWRQEUbQcEFq2K1pEi2ohDu5atCwGNxK1KyUKJwsiMSIjsj+QDjJDU43v3XNavDfqqG+8cDb3O+e73/edawAu3i/1q9FDbHKstaMPLnV83AjzAcS4q02eOe170eXetKG92fC9rMz/VgCWQsWpC4G7iUQIXO7dwp7tXqKap++rPJ+uJuJ+zIMqiCbbMmqQZDgicqo4VcIGnU4V1wCPFKkgYhA1DYggbKApUsTm1kShkbeISBSnEVmiIlHCZBgbyVZEogySShRSUmrJ5XIZ1fUZWIBQhJAoh43qx+cPyN8i+93bk6qaHxkZOTM0NHQgl8vtq7MWCjgHskEGqsrc9BtSlTIpOAUgImPWWlT1MTCwSpEiqoiwrlQNrdt2ANDc2l7p6el57XleEL/zst6aarx+6ioMAmYmxih+mwXg3PkLQV9f35FMJvMqnr82PDx8a9laoBJ/yjWbUjB+U2QR8DzjAfi+b+MWUdWlZUXVIPrVa0PGa2L3sX7a0l0Y4NHDvCsUCuP5fP5gTHRncHDwRp2iwtc/zC3WrK8c46p0FH8hxqNSmu+cnJw/sQoeAG6ubE2FJzPlZXRXp8f13jaujJYA2Okd5qfbytmWqYluu3DcWnsUCFS1qzbjA/wLuQf6rHb5ZTG0t8crbVWnZYBPLg3A7FL6RXdqoTubzU7Fre9qM/8BE/86JRnVtJMAAAAASUVORK5CYII="
-    $iconGroupNavigationOverview = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAABoElEQVRIidWVzW7TUBCFvzFQydcb6A6BRAoskLojvEcS+hA8QCuMusoOOe0L8Ar8FJfnIOxgVagjVV1W6sI2AimnC2o3iamNSzY9K8/4znfm3vEPXHdZ3c31oVZSlw/QtAfeU9D987IjmH4xebH76cdfh/artcGDUbZh0gh42NDkd2EvJ6Hb+zeDt7qxdphHQpsN4DnJbHeS+SFDm87mvcWFV4EDmLTVcfnrSn42OD+W923hCxokYRBXDNaHWkn97Bvw6LLKJAwMoBOlqjE4DHL3pBh8eUSpywd18BZay1zeK4KbZVrTfsNT29T5hUQPeAfzQ+626LKBz7Pi2rtI2t2mwiQMrJhDvYHuVQyWKRPlu1AaGDpemoNnJWt2B+Nl8QWfKwYmL/778vbyxH7FYPWO/1FwsAT+D5f7n4pg/lMRZc8NffgvvOgnr4LqDgAmoduT2e7V6RbNwisGAJPMD4XttGfbKMn97Ur6svWdKO0Ldgwe13EFBya2FjtvNADovtGtk9O8j+jJ6Ep/fplmdmRiDMSrt/398Qv7Xce53joD8RaTXoFSoWwAAAAASUVORK5CYII="
+    $iconGroupNavigationOverview = "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"
     $iconGroupNavigationApplications = "iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+gvaeTAAABNklEQVQ4ja2TMU7DQBBF32xyAkQOEKhScxJ6GprkTLihoecQqVObyhdIRA0hO5/CjuRZbxQJMeWz/fx3vhb+aQzg6fWzA5YjuMNoJF7Cy8YGsRY8jHD39nxzPwfI0pIwhgmEIpUNJPA7gLOo8AghTBawzDGs8PQzBzh58efzh2WiKh2Jjq5dcYRW8j3JAse1N0utbKrqRVnNGCbpcCJ/JM0Cd+WPOby7sa2KfrKHdjB2QJN9wjcZX+OhNYCmF7lPovYbKXmNjRJ95+KhGSCYtDnUUPKLIkAG5U5rLIiOJ98EmuyQoZ25As/JtjM44LqtJxLrMXT3FpLShLMHf0yyVeFphqPlsgUkX5jFdiQWZqxg0trlHQ3rvsqC6Ku2bNTfqyusEOXOhlt8/rVRb1/EWILuQsi/zS9LeaMYZFIZsAAAAABJRU5ErkJggg=="
-    $iconGroupPicture = "iVBORw0KGgoAAAANSUhEUgAAAFsAAABcCAIAAACOUV52AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASdEVYdFNvZnR3YXJlAEdyZWVuc2hvdF5VCAUAAAT8SURBVHhe7Zq9axtJFMBVmIQIKfg4cWs7+rIlr6TVyoRgB5Hj7OJi40JxOCQHRFCcQpjgOB/OBWMFxQiUQxHXpYzAhUtXMenUBKUzadQYcimCICkMLvwv3Kw0t7P79LHSamQumhl+1bw3y+xPszNvF1muTIxztPRsxOmd9l6/7YtlxLW90ONyOHss579FimdDQw9GPLMxf6IYevYRXGLI6MqINxoXU2/l3FcweCgxMOIKzvkTr8O7X8CwIaaTEe+NO8EH78CAoaetkambG1KmCrJZoLWRqeWt8MvPIJURWhhBq4ORTbQl0AjaO6TtTyCJKXRG0MkS3HgPMlhDZwQdtCDMIMQIqs2ZqjvaQYygqhTE2AQbQe8s8qvvIMYm2AjfQVTqRpzuoX+j7R7FCNpTQS/LKEZ8sQzoZRnFiLi2B3pZRjESevoB9LKMYiScPQa9LKMYiRROQS/L1I009bIMNwLhRiDcCIQbgXAjEG4Ewo1AuBEINwLhRiDcCIQbgXAjkHMxsns0mfzbMTtvGxMs/7WRsXnbTPqXldLk85oM8otlkgebxzqdcqweiLtgCDUGbCR35PptfgTfTPu2VNYP7GBEbZ7LK5UmlRQYoBEp/afNjqdv0MwYUZp1mb6UQRkJ3E1dwNOuN3tgdOGNZ70SyNUkhap//cC1sjnaeI46GJkphTQhOVvRL7pF5zaJUmEgRuSHWSuesdKsv5bEHMxRkZ6UHH9U9J1tjdQ5mVwg8UsxMLZfBmAkf+ggD4tgj5lY2J2NnEWe5C/hsMVybb9FQh/QNxKIL+K5ogNl4dDUc25k5EXpMg63SegD6kbKAlkgKY/JM7IXI9EDCUT7g7YR7Xo2uUAQBkbk9CaOoi17lfJfTCkbCSVv4ZlaLD/fr4Fo13Q0ki8LbhzsYxm2hbIR3xKeKWrCQxjtmnZGTqTnB0JIDQqjSfr/QT5fI9rnX9/0yRojbZvnp9WjH6BmPQ8jqNhbKvmy2nyaUDbij83geVssjvQJiFJaI4Lt90O654sWykak+2k87dbV5Em9hMeIcbINtzWi7iP56uTyolq/X5jdD5B8mlA2Etl+Q8qRibwfRPVoDyZjI3UCyYQqxUq7fm9A20ix6gzgGaPbbPHgaDBhBF3fdU0NzgmPOl3fHNSNKOUTeTe1J1w7MEHFlJGzyI5mM3IbLEMT0DcSKf7jIT8jKtRSzq3WpZpJI8r+PYejyHn8/12zYnRlJWrCxaubzntlMat+HNl3LiQuar4n9WQk8ldZmMBx6p9IBmMEka+Mk+LSuPVmBDybMyWK587AjCjUxOSm4YfFkbGEcK8iFbQDjY2gi3ujahbNcn6gRuoUauJ6aTx6y+YLkGrCXf8Qv7rv32l5WHRjRL/F2hOeF00Jphi8kR8NbgTCjUC4EQg3AuFGINwIhBuBcCMQbkRP4ZQb0RHOHnMjOkJPP3AjOsS1PW5Ehy+W4UZ0eK/f5kYIoWcfrzjd3AjBn3iNbHAjGPnVd89sjBshiKm3SAU3ggnvfkF7KjdCaOwg3AgmuPHeFZzjRjDS9ifvjTuqDtaNyLmvUzc3tDoQ7BoJv/w8tbylddGAUSNSptq8OhqwaCT44B3YO7SwZQTVHeig1Z4szbBiBG2iqCr1RuPam2/J8BtBb7T+RLHxztINw2WkcCrnv4Wzx6HHZXFtzxfLoNrc6Z3W3rAhihEOYWL8X63Ou6XrlllGAAAAAElFTkSuQmCC"
     $iconCopyGroup = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAAuklEQVRIidWUyxGCMBRFz2PcUYI60o99pAUsQTqQSmwHB1pg/Vw4aCZDhATEyVll8rn3fZJA6ohvoah6jRFU6FDM45LfAbLYyHwIHESo19Z9U1S92tmvnoHLbhicrv1ZoEbYhwi4NXf5ZCDcQsVfx77XPLM3hopbHCcNfsUsg6bMpSlz75tZbLCE7a6py1hJ7Lm5X8n/MrAjHCKP+QDTb3Jw03z43sl2JVLoFui0kwYoJtKkRdTERJUGT1tnMuEQslpmAAAAAElFTkSuQmCC"
 
     # Add image to UI
-    $WPFImgButtonCloseMenue.source = DecodeBase64Image -ImageBase64 $iconButtonCloseMenu
-    $WPFImgButtonOpenMenue.source = DecodeBase64Image -ImageBase64 $iconButtonOpenMenu
-    $WPFImgButtonLogIn.source = DecodeBase64Image -ImageBase64 $iconButtonLogIn
-    $WPFImgItemHome.source = DecodeBase64Image -ImageBase64 $iconIntuneHome
-    $WPFImgItemGroupManagement.source = DecodeBase64Image -ImageBase64 $iconGroupManagement
-    $WPFImgSearchBoxGroup.source = DecodeBase64Image -ImageBase64 $iconSearch
-    $WPFImgNewGroup.source = DecodeBase64Image -ImageBase64 $iconGroup
-    $WPFImgRefresh.source = DecodeBase64Image -ImageBase64 $iconGroupRefresh
-    $WPFImgMaxGroups.source = DecodeBase64Image -ImageBase64 $iconGroupPaging
-    $WPFImgGroupCount.source = DecodeBase64Image -ImageBase64 $iconGroupCount
-    $WPFImgDeleteGroup.source = DecodeBase64Image -ImageBase64 $iconDeleteGroupt
-    $WPFImgMigrateGroup.source = DecodeBase64Image -ImageBase64 $iconMigrateGroup
-    $WPFImgCopyGroup.source = DecodeBase64Image -ImageBase64 $iconCopyGroup
-    $WPFImgSyncAllDevice.source = DecodeBase64Image -ImageBase64 $iconSyncAllDevice
-    $WPFImgTotalGroupMembers.source = DecodeBase64Image -ImageBase64 $iconTotalGroupMember
-    $WPFImgTotalGroupMembersUser.source = DecodeBase64Image -ImageBase64 $iconGroupMemberUser
-    $WPFImgTotalGroupMembersDevices.source = DecodeBase64Image -ImageBase64 $iconGroupMemberDevices
-    $WPFImgGroupNavigationPolicies.source = DecodeBase64Image -ImageBase64 $iconGroupNavigationPolicies
-    $WPFImgGroupNavigationMember.source = DecodeBase64Image -ImageBase64 $iconGroup
-    $WPFImgGroupNavigationOverview.source = DecodeBase64Image -ImageBase64 $iconGroupNavigationOverview
-    $WPFImgGroupNavigationApplications.source = DecodeBase64Image -ImageBase64 $iconGroupNavigationApplications
-    $WPFImgGroupOverviewPicture.source = DecodeBase64Image -ImageBase64 $iconGroupPicture
-
+    $WPFImgButtonCloseMenue.source = Get-DecodeBase64Image -ImageBase64 $iconButtonCloseMenu
+    $WPFImgButtonOpenMenue.source = Get-DecodeBase64Image -ImageBase64 $iconButtonOpenMenu
+    $WPFImgButtonLogIn.source = Get-DecodeBase64Image -ImageBase64 $iconButtonLogIn
+    $WPFImgItemHome.source = Get-DecodeBase64Image -ImageBase64 $iconIntuneHome
+    $WPFImgItemGroupManagement.source = Get-DecodeBase64Image -ImageBase64 $iconGroupManagement
+    $WPFImgSearchBoxGroup.source = Get-DecodeBase64Image -ImageBase64 $iconSearch
+    $WPFImgNewGroup.source = Get-DecodeBase64Image -ImageBase64 $iconGroup
+    $WPFImgRefresh.source = Get-DecodeBase64Image -ImageBase64 $iconGroupRefresh
+    $WPFImgMaxGroups.source = Get-DecodeBase64Image -ImageBase64 $iconGroupPaging
+    $WPFImgGroupCount.source = Get-DecodeBase64Image -ImageBase64 $iconGroupCount
+    $WPFImgDeleteGroup.source = Get-DecodeBase64Image -ImageBase64 $iconDeleteGroupt
+    $WPFImgMigrateGroup.source = Get-DecodeBase64Image -ImageBase64 $iconMigrateGroup
+    $WPFImgCopyGroup.source = Get-DecodeBase64Image -ImageBase64 $iconCopyGroup
+    $WPFImgSyncAllDevice.source = Get-DecodeBase64Image -ImageBase64 $iconSyncAllDevice
+    $WPFImgTotalGroupMembers.source = Get-DecodeBase64Image -ImageBase64 $iconTotalGroupMember
+    $WPFImgTotalGroupMembersUser.source = Get-DecodeBase64Image -ImageBase64 $iconGroupMemberUser
+    $WPFImgTotalGroupMembersDevices.source = Get-DecodeBase64Image -ImageBase64 $iconGroupMemberDevices
+    $WPFImgGroupNavigationPolicies.source = Get-DecodeBase64Image -ImageBase64 $iconGroupNavigationPolicies
+    $WPFImgGroupNavigationMember.source = Get-DecodeBase64Image -ImageBase64 $iconGroup
+    $WPFImgGroupNavigationOverview.source = Get-DecodeBase64Image -ImageBase64 $iconGroupNavigationOverview
+    $WPFImgGroupNavigationApplications.source = Get-DecodeBase64Image -ImageBase64 $iconGroupNavigationApplications
+    $WPFImgGroupGreation.source = Get-DecodeBase64Image -ImageBase64 $iconGroupNavigationOverview
+ 
     
-    
-
-
     # Fill combo box    
     $valueGroupCount = "10", "100", "500", "1000", "5000", "10000", "All"
     foreach ($value in $valueGroupCount) { $WPFComboboxGridCount.items.Add($value) | Out-Null }
     $WPFComboboxGridCount.SelectedIndex = 2
+
+    $valueGroupMigrationType = "Migrate to User group", "Migrate to Device group"
+    foreach ($value in $valueGroupMigrationType) { $WPFComboboxMigrationType.items.Add($value) | Out-Null }
+    $WPFComboboxMigrationType.SelectedIndex = 0
+
+    $valueGroupType = "Security" # Add M365
+    foreach ($value in $valueGroupType) { $WPFComboboxGroupType.items.Add($value) | Out-Null }
+    $WPFComboboxGroupType.SelectedIndex = 0
 
     # Enable icons
     $WPFItemHome.IsEnabled = $false

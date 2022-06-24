@@ -7,15 +7,13 @@ Helper for Group management Module
   Author: Jannik Reinhard
 #>
 
-function Get-ModuleVersion
-{
-    '1.0.0'
-}
+########################################################################################
+###################################### Functions #######################################
+########################################################################################
 function Search-Group{
     param(  
         [String]$searchString
       )
-      Write-Host "$searchString"
     if($searchString.Length -lt 2) {
         Add-InitGroupsGrid -clearDevicesList $false
         return
@@ -33,62 +31,10 @@ function Search-Group{
 
     Add-GroupsToGrid -groups $script:GroupObjectsSearch
 }
-
-function Add-GroupsToGrid{
-    param (
-        $groups
-    )
-
-    #if(-not $groups){return}
-    $items = $groups | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-	$WPFListViewAllGroups.ItemsSource = $items
-	$WPFLabelCountGroups.Content = "$($items.count) Groups"
-}
-
 function Get-ManagedGroups{
     $allGroups = Get-MgGroup -All
     $script:GroupObjects = $allGroups
     return $allGroups
-}
-
-function Add-GroupImage{
-    if((Test-Path ("$PSScriptRoot\.tmp\groupImg.png"))) {return}
-    $imageGroup = "iVBORw0KGgoAAAANSUhEUgAAAC4AAAAvCAIAAAATh2/FAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAASdEVYdFNvZnR3YXJlAEdyZWVuc2hvdF5VCAUAAALsSURBVFhH7ZfLaxNBHMeDVhvyaGxrXpvE7sYk3aQhJG2sWs3DkjakD62tgidvhaKIAQ961auexApehKCi1xQRQ0EPKj5AqAo+/hu/m1nGZpJNp6C7K2T4HHZnZnc+M7+ZX7KWgOA3CaZXmZACaxnpbj66UZa3lsZ+rSR1gFWJhIRqNtyoxJl+OtCiUoqF1gtRpodu/FHJRYK16RjTrCeqSkoMGLgeBFUF+4Np0B9FBeelXpaZBv1RVFbTIlNrCIoK8gdTawiKyuacAVmkHUs0JOiWT7ujrApTZRQ9lU70VDrx36q8nZevp3yTbrulWRIHrBcjwy9m1Qz5cjYqu6ykCcXet6ckDNTy0o/llpdowavycyV57/ghydmPMQK2fVMeB8AFbm8fCZI+RMW1f+8xt/2k15E9aIcNuDMZxOP0VVrwqjzKSxgYKg9OjHxfVlMiLp4UpIc59SeMqOS8jo+LSvrG8JCASt7r+LCwc0LnUkFcyBpAiGnaDqMC3szLR912VKKJdtOCS+X+1AgCcTnuoevRkXaV15XR8WEbbOBEu2nBpXI14YEKDYQWjAp2682MwDMHwi5UnhbVf3pflhIXwkOoIQXXqEE9UaHbNj1kQ+s5cfD9Atf/sl2oPC6oG+Xr0tgl2U3PCKPS1FNLdcz77Szvzz6XClnnGykfcybJ2IwKCdDn04krcWUC15JenugALpXnM9HDzn5swFeVlq+TLiq4/bQYrwRdbmsfshx9pAtcKpgWJocpzggDjXKMrk29FBnVVgHYXkgBRZ/z3d86QWDrTGJNdivxb+Z7uitRuqhgDuQpbJodw8SrAnA4nxXD58VBku9xUk75nbfGBTpwuwpATBFZPEIPoBa7UPnX9FQ60VNpA99iZlHZKMtmUcF3u1lU1jKSKVQalfiEFDCFSjUbhobxKuuFaCQkGK9Sm46VYiE4GKyC9chFgsTDMJV6Wcb+SIkB6qGrCvLp5lwc+WM1LeK8bJdQEPy/AQHJ/VSRm5sfAAAAAElFTkSuQmCC"
-    $imagePath = ("$PSScriptRoot\.tmp\groupImg.png")
-    [byte[]]$Bytes = [convert]::FromBase64String($imageGroup)
-    [System.IO.File]::WriteAllBytes($imagePath,$Bytes)
-}
-function Add-InitGroupsGrid{
-    param (
-        [boolean]$clearDevicesList = $true
-    )
-    
-    if(-not $global:auth) {return}
-    if(($script:GroupObservableCollection).Count -eq 0 -or $clearDevicesList) {
-        $script:GroupObservableCollection = @()
-
-        $allGroups = Get-ManagedGroups
-        $allGroups = $allGroups | Sort-Object -Property DisplayName
-
-        foreach ($group in $allGroups) {
-            $groupType = "Assigned"
-            if($group.groupTypes[0] -eq "DynamicMembership") {$groupType = "Dynamic"}
-    
-            # Create object
-            $param = [PSCustomObject]@{
-                GroupImage                  = ("$PSScriptRoot\.tmp\groupImg.png")
-                GroupName                   = $group.displayName
-                GroupObjectId               = $group.id
-                GroupMembershipType         = $groupType
-                GroupEmail                  = $group.mail
-                GroupSource                 = "Cloud"
-            }
-    
-            $script:GroupObservableCollection += $param
-        }
-
-    }
-    Add-GroupsToGrid -groups $script:GroupObservableCollection 
 }
 function Sync-AllDevicesInGroup{
     param (
@@ -100,9 +46,7 @@ function Sync-AllDevicesInGroup{
         if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.device"){
             $device = (Get-MgDevice -Filter "Id eq '$($_.Id)'")
             try {
-                Write-Host "Azure AD Device id: $($device.DeviceId)"
                 $intuneDeviceId = (Get-IntunemanagedDevice -Filter "azureADDeviceId eq '$($device.DeviceId)'").id
-                Write-Host "Intune Device id: $intuneDeviceId"
                 if($intuneDeviceId) {
                     Invoke-IntuneManagedDeviceSyncDevice -managedDeviceId $intuneDeviceId | Out-Null
                 }
@@ -114,12 +58,11 @@ function Sync-AllDevicesInGroup{
     }
 }
 
-function Get-GroupOverView{
+function Get-GroupOverview{
     param (
         [Parameter(Mandatory = $true)]
         [String]$groupId
     )
-
 
     $group = Get-MgGroup -GroupId $groupId
     $countDevices = 0
@@ -132,6 +75,9 @@ function Get-GroupOverView{
 
 
     # Set ui info
+    $colornumber= Get-Random -Maximum 9
+    $WPFGridGroupPicture.Background = $global:GroupColorSelection[$colornumber]
+    $WPFTextGroupnameShort.Text = (($group.DisplayName).Substring(0,2)).ToUpper()
     $WPFLableGroupOverviewName.Content = $group.DisplayName
     $WPFLabelSourceValue.Content = "Cloud"
     $WPFLabelMemberShipTypeValue.Content = $groupTypeMemberShip
@@ -148,15 +94,126 @@ function Get-GroupOverView{
     $WPFLabelGroupMembersUser.Content = "$countUser User(s)"
     $WPFLabelGroupMembersDevices.Content = "$countDevices Device(s)"   
 }
+function Add-MgtGroup{
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]$groupName,
+        [String]$groupDescription = $null,
+        [array]$groupMember = $null
+    )
+    $bodyJson = @'
+    {
+        "displayName": "",
+        "groupTypes": [],
+        "mailEnabled": false,
+        "mailNickname": "NotSet",
+        "securityEnabled": true,
+        "members@odata.bind":[]
+    }
+'@ | ConvertFrom-Json
 
-function Get-GroupMigrated{
-    # Pop up
+    $bodyJson.displayName = $groupName
 
-    # As if user or device group
-
-    # Create group
-
-    # Get primary contact
+    if($groupDescription){
+        $bodyJson | Add-Member -NotePropertyName description -NotePropertyValue $groupDescription
+    } 
     
-    # Add User
+    $groupMmemberArray = @()
+    $groupMember | Foreach-Object {
+        $groupMmemberArray += "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+    }
+
+    $bodyJson.'members@odata.bind' = $groupMmemberArray
+    $bodyJson = $bodyJson | ConvertTo-Json
+    New-MgGroup -BodyParameter $bodyJson
+}
+
+function Set-MigrateAadGroup{
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]$groupName,
+        [String]$groupDescription = $null,
+        [String]$migrationType,
+        [array]$groupMember = $null
+    )
+
+    $user = @()
+    $device = @()
+    $newGroupMember = @()
+    $groupMember | Foreach-Object {
+        if($_.AdditionalProperties.'@odata.type' -eq "#microsoft.graph.user"){$user += $_}
+        elseif($_.AdditionalProperties.'@odata.type' -eq "#microsoft.graph.device") {$user += $_}
+    }
+
+    if($migrationType -eq 0){
+        $device  | Foreach-Object {
+                        
+        }
+    }elseif($migrationType -eq 1){
+        # $newGroupMember += $device.id
+        # $user  | Foreach-Object {
+        #     $Get-MgUserOwnedDevice -UserId $_.Id ###Check
+
+        # }
+    }
+}
+
+########################################################################################
+################################### User Interface #####################################
+########################################################################################
+function Open-GroupView{
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]$groupId
+    )   
+    Hide-All
+    Get-GroupOverview -groupId $($global:SelectedGroupId).GroupObjectId
+    $WPFGridGroupView.Visibility = 'Visible'
+    $global:AllGroupMember = Get-MgGroupMember -GroupId $groupId
+    return $global:AllGroupMember
+}
+
+function Add-InitGroupsGrid{
+    param (
+        [boolean]$clearDevicesList = $true
+    )
+    
+    if(-not $global:auth) {return}
+    if(($script:GroupObservableCollection).Count -eq 0 -or $clearDevicesList) {
+        $script:GroupObservableCollection = @()
+
+        $allGroups = Get-ManagedGroups
+        $allGroups = $allGroups | Sort-Object -Property DisplayName
+        
+        foreach ($group in $allGroups) {
+            $groupType = "Assigned"
+            if($group.groupTypes[0] -eq "DynamicMembership") {$groupType = "Dynamic"}
+            $colornumber= Get-Random -Maximum 9
+            # Create object
+            $param = [PSCustomObject]@{
+                GroupColor                  = $global:GroupColorSelection[$colornumber]
+                GroupNameShort              = ($($group.displayName).Substring(0,2)).ToUpper()
+                GroupName                   = $group.displayName
+                GroupObjectId               = $group.id
+                GroupMembershipType         = $groupType
+                GroupEmail                  = $group.mail
+                GroupSource                 = "Cloud"
+            }
+    
+            $script:GroupObservableCollection += $param
+        }
+
+    }
+    Add-GroupsToGrid -groups $script:GroupObservableCollection 
+}
+
+function Add-GroupsToGrid{
+    param (
+        $groups
+    )
+    $items = @()
+    #if(-not $groups){return}
+    $items += $groups | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewAllGroups.ItemsSource = $items
+	$WPFLabelCountGroups.Content = "$($items.count) Groups"
 }

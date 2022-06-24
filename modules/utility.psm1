@@ -8,10 +8,24 @@ Core functions
 #>
 
 ##
-function Get-ModuleVersion
-{
-    '1.0.0'
+function Start-Init {
+  #Load dll
+  try {
+    [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')  				| out-null
+    [System.Reflection.Assembly]::LoadWithPartialName('presentationframework') 				| out-null
+    [System.Reflection.Assembly]::LoadFrom("libaries\MahApps.Metro.dll")       				| out-null
+    [System.Reflection.Assembly]::LoadFrom("libaries\ControlzEx.dll")                 | out-null  
+    [System.Reflection.Assembly]::LoadFrom("libaries\SimpleDialogs.dll")              | out-null
+  }catch{
+    Write-Error "Loading from dll's was not sucessfull"
+  }
+
+  # Create temp folder
+  if(-not (Test-Path "$global:Path\.tmp")) {
+    New-Item "$global:Path\.tmp" -Itemtype Directory
+  }
 }
+
 
 function Add-XamlEvent{
   param(
@@ -41,7 +55,7 @@ function Add-XamlEvent{
 }
 
 function Get-GraphAuthentication{
-  $GraphPowershellModulePath = "$PSScriptRoot/Microsoft.Graph.psd1"
+  $GraphPowershellModulePath = "$global:Path/Microsoft.Graph.psd1"
   if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
 
       if (-Not (Test-Path $GraphPowershellModulePath)) {
@@ -129,13 +143,10 @@ function Set-LoginOrLogout{
   $WPFItemHome.IsEnabled = $true
   $WPFItemGroupManagement.IsEnabled = $true
   $WPFItemHome.IsSelected = $true
-
-  #Load Image for groups
-  Add-GroupImage
   return 
 }
 
-function DecodeBase64Image {
+function Get-DecodeBase64Image {
   param (
       [Parameter(Mandatory = $true)]
       [String]$imageBase64
@@ -154,12 +165,12 @@ function Get-ProfilePicture {
       [Parameter(Mandatory = $true)]
       [String]$upn
   )
-  $path = "$PSScriptRoot\.tmp\$upn.png"
+  $path = "$global:Path\.tmp\$upn.png"
   if (-Not (Test-Path $path)) {
       Get-MgUserPhotoContent -UserId $upn -OutFile $path
   }
   $iconButtonLogIn = [convert]::ToBase64String((get-content $path -encoding byte))
-  $WPFImgButtonLogIn.source = DecodeBase64Image -ImageBase64 $iconButtonLogIn
-  $WPFImgButtonLogIn.Width="40"
-  $WPFImgButtonLogIn.Height="40"
+  $WPFImgButtonLogIn.source = Get-DecodeBase64Image -ImageBase64 $iconButtonLogIn
+  $WPFImgButtonLogIn.Width="35"
+  $WPFImgButtonLogIn.Height="35"
 }

@@ -10,7 +10,7 @@ Version 1.0: Init
 ###########################################################################################################
 ############################################ Functions ####################################################
 ###########################################################################################################
-function Start-StartScreen{
+function Get-MessageScreen{
     param (
         [Parameter(Mandatory = $true)]
         [String]$xamlPath
@@ -18,20 +18,22 @@ function Start-StartScreen{
     
     [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
     Add-Type -AssemblyName PresentationFramework
-    [xml]$xaml = Get-Content ("$PSScriptRoot\xaml\startScreen.xaml")
-    $global:startScreen = ([Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader $xaml)))
-    $global:textStartScreenTitle = $global:StartScreen.FindName("TextTitelStartScreen")
-    $global:textStartScreen = $global:StartScreen.FindName("TextStartScreen")
+    [xml]$xaml = Get-Content $xamlPath
+    $global:messageScreen = ([Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader $xaml)))
+    $global:messageScreenTitle = $global:messageScreen.FindName("TextMessageHeader")
+    $global:messageScreenText = $global:messageScreen.FindName("TextMessageBody")
+    $global:button1 = $global:messageScreen.FindName("ButtonMessage1")
+    $global:button2 = $global:messageScreen.FindName("ButtonMessage2")
 
-    $global:textStartScreenTitle.Text = "Initializing Intune Tool Box"
-    $global:textStartScreen.Text = "Starting initializing Intune Tool Box"
-    $global:startScreen.Show() | Out-Null
+    $global:messageScreenTitle.Text = "Initializing Intune Tool Box"
+    $global:messageScreenText.Text = "Starting initializing Intune Tool Box"
+    $global:messageScreen.Show() | Out-Null
     [System.Windows.Forms.Application]::DoEvents()
 }
 
 function Import-AllModules
 {
-    foreach($file in (Get-Item -path "$PSScriptRoot\modules\*.psm1"))
+    foreach($file in (Get-Item -path "$global:Path\modules\*.psm1"))
     {      
         $fileName = [IO.Path]::GetFileName($file) 
         if($skipModules -contains $fileName) { Write-Warning "Module $fileName excluded"; continue; }
@@ -39,11 +41,11 @@ function Import-AllModules
         $module = Import-Module $file -PassThru -Force -Global -ErrorAction SilentlyContinue
         if($module)
         {
-          $global:textStartScreen.Text = "Module $($module.Name) loaded successfully"
+          $global:messageScreenText.Text = "Module $($module.Name) loaded successfully"
         }
         else
         {
-          $global:textStartScreen.Text = "Failed to load module $file"
+          $global:messageScreenText.Text = "Failed to load module $file"
         }
     }
 }
@@ -54,43 +56,48 @@ function Import-AllModules
 # Variables
 [array]$script:GroupObservableCollection = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
 [array]$script:GroupObjectsSearch = $null
-$global:auth = $false
+[array]$global:AllGroupMember = $null
+$global:Auth = $false
 $global:SelectedGroupId = ""
-# Create temp folder
-if(-not (Test-Path "$PSScriptRoot\.tmp")) {
-    New-Item "$PSScriptRoot\.tmp" -Itemtype Directory
-}
-
+$global:GroupCreationMode = ""
+$global:Path = $PSScriptRoot
+$global:SelectedIndex = -1
+$global:GroupColorSelection = ("#00AAA8", "#1E7045", "#20874D", "#20874D", "#FE0096","#D9532C","#2D88EE","#D30BC4","#ED1111","#00AAA8")
 # Start Start Screen
-Start-StartScreen -xamlPath ("$PSScriptRoot\xaml\startScreen.xaml")
+Get-MessageScreen -xamlPath ("$global:Path\xaml\message.xaml")
+$global:messageScreenTitle.Text = "Initializing Intune Tool Box"
+$global:messageScreenText.Text = "Starting initializing Intune Tool Box"
 
 # Load custom modules
 Import-AllModules
 
+#Init 
+Start-Init
+
 # Load main windows
-$returnMainForm = New-XamlScreen -xamlPath ("$PSScriptRoot\xaml\ui.xaml")
-$formMainForm = $returnMainForm[0]
+$returnMainForm = New-XamlScreen -xamlPath ("$global:Path\xaml\ui.xaml")
+$global:formMainForm = $returnMainForm[0]
 $xamlMainForm = $returnMainForm[1]
 $xamlMainForm.SelectNodes("//*[@Name]") | % {Set-Variable -Name "WPF$($_.Name)" -Value $formMainForm.FindName($_.Name)}
-$formMainForm.add_Loaded({
-    $global:StartScreen.Hide()
-    $formMainForm.Activate()
+$global:formMainForm.add_Loaded({
+    $global:messageScreen.Hide()
+    $global:formMainForm.Activate()
 })
 
 # Remove
-Get-FormVariables
+#Get-FormVariables
 
 # Init User interface
-$global:textStartScreen.Text = "Load User Interface"
+$global:messageScreenText.Text = "Load User Interface"
 Set-UserInterface
 
 # Load the click actions
-$global:textStartScreen.Text = "Load Actions"
+$global:messageScreenText.Text = "Load Actions"
 Set-UiAction
 
 # Authentication
-$global:textStartScreen.Text = "Login to Microsoft Graph"
+$global:messageScreenText.Text = "Login to Microsoft Graph"
 Set-LoginOrLogout
 
 # Start Main Windows
-$formMainForm.ShowDialog() | out-null
+$global:formMainForm.ShowDialog() | out-null
