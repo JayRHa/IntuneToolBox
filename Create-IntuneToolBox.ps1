@@ -54,11 +54,17 @@ function Import-AllModules
 ############################################## Start ######################################################
 ###########################################################################################################
 # Variables
-[array]$script:GroupObservableCollection = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
-[array]$script:GroupObjectsSearch = $null
+[array]$global:AllGroupsObservableCollection  = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
+[array]$global:AllGroupsCollection = $null
+[array]$global:AllGroupsItemObservableCollection  = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
+[array]$global:AllGroupsItemAddObservableCollection  = New-Object System.Collections.ObjectModel.ObservableCollection[Object]
+[array]$global:AllGroupsItemAddCollection = $null
 [array]$global:AllGroupMember = $null
+[array]$global:AllGroupPolicies = $null
+
 $global:Auth = $false
 $global:SelectedGroupId = ""
+$global:AllManagedItems = $null
 $global:GroupCreationMode = ""
 $global:Path = $PSScriptRoot
 $global:SelectedIndex = -1
@@ -96,7 +102,7 @@ $global:messageScreenText.Text = "Load Actions"
 Set-UiAction
 
 # Authentication
-$global:messageScreenText.Text = "Login to Microsoft Graph"
+$global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
 Set-LoginOrLogout
 
 # Start Main Windows

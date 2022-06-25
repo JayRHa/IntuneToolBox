@@ -15,25 +15,73 @@ function Search-Group{
         [String]$searchString
       )
     if($searchString.Length -lt 2) {
-        Add-InitGroupsGrid -clearDevicesList $false
+        Add-InitGroupsGrid -clearGroupList $false
         return
     }
     if($searchString -eq '') { 
-        Add-InitGroupsGrid -clearDevicesList $false
+        Add-InitGroupsGrid -clearGroupList $false
         return
     }
 
-    $script:GroupObjectsSearch = @()          
-    $script:GroupObjectsSearch = $script:GroupObservableCollection | Where `
+    $global:AllGroupsObservableCollection = @()          
+    $global:AllGroupsObservableCollection = $global:AllGroupsCollection | Where `
         { ($_.GroupName -like "*$searchString*") -or `
         ($_.GroupObjectId -like "*$searchString*") -or `
         ($_.GroupEmail -like "*$searchString*") }
 
-    Add-GroupsToGrid -groups $script:GroupObjectsSearch
+    Add-GroupsToGrid -groups $global:AllGroupsObservableCollection
 }
+
+function Search-InItemListItem{
+    param(  
+        [String]$searchString
+      )
+
+    if($searchString.Length -lt 2) {
+        Add-InitGroupItemGrid
+        return
+    }
+    if($searchString -eq '') { 
+        Add-InitGroupItemGrid
+        return
+    }
+
+    $global:AllGroupsItemObservableCollection = @()          
+    $global:AllGroupsItemObservableCollection = $global:AllGroupMember | Where `
+        { ($_.ItemName -like "*$searchString*") -or `
+        ($_.ItemType -like "*$searchString*") -or `
+        ($_.ItemDetails -like "*$searchString*") }
+
+    $items += $global:AllGroupsItemObservableCollection | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+function Search-InItemAddList{
+    param(  
+        [String]$searchString
+      )
+
+    if($searchString.Length -lt 2) {
+        Add-InitGroupItemAddGrid
+        return
+    }
+    if($searchString -eq '') { 
+        Add-InitGroupItemAddGrid
+        return
+    }
+
+    $global:AllGroupsItemAddObservableCollection = @()          
+    $global:AllGroupsItemAddObservableCollection = $global:AllGroupsItemAddCollection | Where `
+        { ($_.ItemName -like "*$searchString*") -or `
+        ($_.ItemInfo -like "*$searchString*") }
+
+    $items += $global:AllGroupsItemAddObservableCollection | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewAdd.ItemsSource = @($items)
+}
+
 function Get-ManagedGroups{
     $allGroups = Get-MgGroup -All
-    $script:GroupObjects = $allGroups
+    $global:GroupObjects = $allGroups
     return $allGroups
 }
 function Sync-AllDevicesInGroup{
@@ -71,8 +119,7 @@ function Get-GroupOverview{
     $groupType = "Microsoft 365"
     $groupTypeMemberShip = "Assigned"
     if($group.SecurityEnabled -and $group.MailEnabled -eq $false){$groupType = "Security"}
-    if($group.GroupTypes[0] -eq "DynamicMembership") {$groupType = "Dynamic"}
-
+    if($group.GroupTypes[0] -eq "DynamicMembership") {$groupTypeMemberShip = "Dynamic"}
 
     # Set ui info
     $colornumber= Get-Random -Maximum 9
@@ -107,8 +154,7 @@ function Add-MgtGroup{
         "groupTypes": [],
         "mailEnabled": false,
         "mailNickname": "NotSet",
-        "securityEnabled": true,
-        "members@odata.bind":[]
+        "securityEnabled": true
     }
 '@ | ConvertFrom-Json
 
@@ -118,44 +164,65 @@ function Add-MgtGroup{
         $bodyJson | Add-Member -NotePropertyName description -NotePropertyValue $groupDescription
     } 
     
-    $groupMmemberArray = @()
-    $groupMember | Foreach-Object {
-        $groupMmemberArray += "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+    if($groupMember.Length -gt 0){
+        $bodyJson | Add-Member -NotePropertyName 'members@odata.bind' -NotePropertyValue @($groupMember.uri)
     }
 
-    $bodyJson.'members@odata.bind' = $groupMmemberArray
     $bodyJson = $bodyJson | ConvertTo-Json
     New-MgGroup -BodyParameter $bodyJson
 }
 
-function Set-MigrateAadGroup{
+function Get-MigrateGroupMember{
     param (
-        [Parameter(Mandatory = $true)]
-        [String]$groupName,
-        [String]$groupDescription = $null,
         [String]$migrationType,
-        [array]$groupMember = $null
+        [array]$groupMember = $null,
+        $windows = $true,
+        $ios = $true,
+        $macos = $true,
+        $android = $true
     )
 
-    $user = @()
-    $device = @()
+    $os = @()
+    if($windows){$os += 'Windows'}
+    if($macos){$os += 'MacMDM'}
+    if($android){$os += 'Android'}
+    if($ios){$os += 'IOS'}
+    
     $newGroupMember = @()
-    $groupMember | Foreach-Object {
-        if($_.AdditionalProperties.'@odata.type' -eq "#microsoft.graph.user"){$user += $_}
-        elseif($_.AdditionalProperties.'@odata.type' -eq "#microsoft.graph.device") {$user += $_}
-    }
 
     if($migrationType -eq 0){
-        $device  | Foreach-Object {
-                        
+        $groupMember | Where-Object {$_.ItemType -eq 'Device'} | Foreach-Object {
+            $userId = (Get-MgDeviceRegisteredOwner -DeviceId $_.Id).Id
+            if($userId){
+                $newGroupMember += [PSCustomObject]@{
+                    Uri = "https://graph.microsoft.com/v1.0/directoryObjects/" + $userId 
+                }  
+            }
+        }
+        $groupMember  | Where-Object {$_.ItemType -eq 'User'} | Foreach-Object {
+            $newGroupMember += [PSCustomObject]@{
+                Uri             = $_.Uri
+            }
         }
     }elseif($migrationType -eq 1){
-        # $newGroupMember += $device.id
-        # $user  | Foreach-Object {
-        #     $Get-MgUserOwnedDevice -UserId $_.Id ###Check
-
-        # }
+        $groupMember  | Where-Object {$_.ItemType -eq 'User'} | Foreach-Object {
+            (Get-MgUserOwnedDevice -UserId $_.Id) | ForEach-Object {
+                $newGroupMember += [PSCustomObject]@{
+                    Uri             = "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+                    OperatinSystem  = $_.AdditionalProperties.operatingSystem
+                }
+            }                        
+        }
+        $groupMember  | Where-Object {$_.ItemType -eq 'Device'} | Foreach-Object {
+            $newGroupMember += [PSCustomObject]@{
+                Uri             = $_.Uri
+                OperatinSystem  = $_.OperatinSystem
+            }
+        }
+        $newGroupMember = $newGroupMember | Where-Object {$_.OperatinSystem -in $os}
     }
+    $newGroupMember = $newGroupMember | Sort-Object -Property uri -Uniqu 
+    return ,$newGroupMember
 }
 
 ########################################################################################
@@ -167,20 +234,23 @@ function Open-GroupView{
         [String]$groupId
     )   
     Hide-All
+    Hide-GroupViewAll
     Get-GroupOverview -groupId $($global:SelectedGroupId).GroupObjectId
+    Get-NavigationGroupViewPageChange -selectedItem "ItemGroupsOverview"
+    $WPFListViewGroupMenu.SelectedIndex = 0
+    $WPFGridGroupViewOverview.Visibility="Visible"
     $WPFGridGroupView.Visibility = 'Visible'
-    $global:AllGroupMember = Get-MgGroupMember -GroupId $groupId
-    return $global:AllGroupMember
+    Get-AllGroupMember -GroupId $groupId
 }
 
 function Add-InitGroupsGrid{
     param (
-        [boolean]$clearDevicesList = $true
+        [boolean]$clearGroupList = $true
     )
     
     if(-not $global:auth) {return}
-    if(($script:GroupObservableCollection).Count -eq 0 -or $clearDevicesList) {
-        $script:GroupObservableCollection = @()
+    if(($global:AllGroupsCollection ).Count -eq 0 -or $clearGroupList) {
+        $global:AllGroupsCollection  = @()
 
         $allGroups = Get-ManagedGroups
         $allGroups = $allGroups | Sort-Object -Property DisplayName
@@ -200,11 +270,11 @@ function Add-InitGroupsGrid{
                 GroupSource                 = "Cloud"
             }
     
-            $script:GroupObservableCollection += $param
+            $global:AllGroupsCollection  += $param
         }
 
     }
-    Add-GroupsToGrid -groups $script:GroupObservableCollection 
+    Add-GroupsToGrid -groups $global:AllGroupsCollection 
 }
 
 function Add-GroupsToGrid{
@@ -212,8 +282,122 @@ function Add-GroupsToGrid{
         $groups
     )
     $items = @()
-    #if(-not $groups){return}
     $items += $groups | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
 	$WPFListViewAllGroups.ItemsSource = $items
 	$WPFLabelCountGroups.Content = "$($items.count) Groups"
+}
+
+function Add-InitGroupItemGridMember{
+    param (
+        [boolean]$loadNew = $true
+    )
+
+    if(($global:AllGroupMember).Count -eq 0 -or $loadNew) {
+        Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
+    }
+
+    $allGroupMembers = @()
+    $allGroupMembers = $global:AllGroupMember
+
+    $items += $allGroupMembers | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+function Add-InitGroupItemGridPolicies{
+    param (
+        [boolean]$loadNew = $true
+    )
+
+    if(($global:AllGroupPolicies).Count -eq 0 -or $loadNew) {
+        Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
+    }
+
+    $allGroupMembers = @()
+    $allGroupMembers = $global:AllGroupMember
+
+    $items += $allGroupMembers | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+
+
+
+function Add-InitGroupItemAddGrid{
+    $itemsToAdd = $global:AllManagedItems | Where `
+    { -not ($_.Id -in $global:AllGroupMember.id) -and `
+    -not ($_.Id -like $global:SelectedGroupId.GroupObjectId) -and `
+    -not ($_.GroupTypes -eq 'Dynamic')}
+
+    $itemsToAdd = $itemsToAdd | Sort-Object -Property ItemName
+
+    $global:AllGroupsItemAddCollection = $itemsToAdd
+    $items += $itemsToAdd | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewAdd.ItemsSource = @($items)
+}
+
+function Get-AllGroupMember {
+    param(
+      [Parameter(Mandatory = $true)]  
+      $groupId
+    )
+  
+    $global:AllGroupMember = @()
+    $groupMembers = Get-MgGroupMember -GroupId $groupId
+    $groupMembers = $groupMembers | Sort-Object -Property AdditionalProperties.displayName
+    $items = @()
+  
+    $groupMembers | ForEach-Object {
+        if($_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.user'){
+            $param = [PSCustomObject]@{
+                ItemImg                         = ("$global:Path\.tmp\memberImg.png")
+                ImgVisible                      = "Visible"
+                GridColor                       = $null
+                GroupNameShort                  = $null
+                GridVisible                     = "Collapsed"
+                ItemName                        = $_.AdditionalProperties.displayName
+                ItemType                        = "User"
+                ItemDetails                     = $_.AdditionalProperties.mail
+                Id                              = $_.Id
+                Uri                             = "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+                OperatinSystem                  = $null
+            }
+            $items += $param
+        } elseif ($_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.device') {
+            $param = [PSCustomObject]@{
+                ItemImg                         = ("$global:Path\.tmp\deviceImg.png")
+                ImgVisible                      = "Visible"
+                GridColor                       = $null
+                GroupNameShort                  = $null
+                GridVisible                     = "Collapsed"
+                ItemName                        = $_.AdditionalProperties.displayName 
+                ItemType                        = "Device"
+                ItemDetails                     = $_.AdditionalProperties.profileType
+                Id                              = $_.Id
+                Uri                             = "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+                OperatinSystem                  = $_.AdditionalProperties.operatingSystem
+            }
+            $items += $param
+        } elseif ($_.AdditionalProperties.'@odata.type' -eq '#microsoft.graph.group') {
+            $colornumber= Get-Random -Maximum 9
+            $param = [PSCustomObject]@{
+                ItemImg                         = $null
+                ImgVisible                      = "Collapsed"
+                GridColor                       = $global:GroupColorSelection[$colornumber]
+                GroupNameShort                  = ($($_.AdditionalProperties.displayName).Substring(0,2)).ToUpper()
+                GridVisible                     = "Visible"
+                ItemName                        =  $_.AdditionalProperties.displayName
+                ItemType                        = "Group"
+                ItemDetails                     = $_.AdditionalProperties.securityIdentifier
+                Id                              = $_.Id
+                Uri                             = "https://graph.microsoft.com/v1.0/directoryObjects/" + $_.Id
+                OperatinSystem                  = $null
+            }
+            $items += $param
+        }
+      }
+    $global:AllGroupMember = @($items)
+  }
+
+function Get-AllGroupPolicies{
+    
 }

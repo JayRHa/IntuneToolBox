@@ -32,6 +32,5 @@ function Get-MainFrame{
     $WPFLabelTotalAndroidDevicesState.Content = "$($deviceManagementOverview.deviceOperatingSystemSummary.androidCount) devices"
     $WPFLabelTotalMacOSDevicesState.Content = "$($deviceManagementOverview.deviceOperatingSystemSummary.macOSCount) devices"
     $WPFLabelTotalUnknowDevicesState.Content = "$($deviceManagementOverview.deviceOperatingSystemSummary.unknownCount) devices"
-    
     $WPFGridHomeFrame.Visibility = 'Visible'
 }

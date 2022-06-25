@@ -24,8 +24,69 @@ function Start-Init {
   if(-not (Test-Path "$global:Path\.tmp")) {
     New-Item "$global:Path\.tmp" -Itemtype Directory
   }
+  $global:messageScreenText.Text = "Get All managed Items"
+  Get-AllManagedItems | out-null
 }
 
+function Get-AllManagedItems {
+    $managedItems = @()
+    $devices = Get-MgDevice -All
+    $user = Get-MgUser -All
+    $groups = Get-MgGroup -All
+
+    $devices | ForEach-Object {
+        $param = [PSCustomObject]@{
+            ItemImg                         =  ("$global:Path\.tmp\deviceImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemInfo                        = $_.DeviceId
+            Id                              = $_.Id
+            Type                            = "Device"
+            GroupTypes                      = $null
+        }
+        $managedItems += $param
+    }
+
+    $user | ForEach-Object {
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\memberImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemInfo                        = $_.UserPrincipalName
+            Id                              = $_.Id
+            Type                            = "User"
+            GroupTypes                      = $null
+        }
+        $managedItems += $param
+    }
+
+    $groups | ForEach-Object {
+        $colornumber= Get-Random -Maximum 9
+        if($_.GroupTypes[0] -eq "DynamicMembership") {$groupTypeMemberShip = "Dynamic"}else{$groupTypeMemberShip = "Assigned"}
+        $param = [PSCustomObject]@{
+            ItemImg                         = $null
+            ImgVisible                      = "Collapsed"
+            GridColor                       = $global:GroupColorSelection[$colornumber]
+            GroupNameShort                  = ($($_.DisplayName).Substring(0,2)).ToUpper()
+            GridVisible                     = "Visible"
+            ItemName                        = $_.DisplayName
+            ItemInfo                        = $_.Id
+            Id                              = $_.Id
+            Type                            = "Group"
+            GroupTypes                      = $groupTypeMemberShip
+        }
+        $managedItems += $param
+    }
+  
+  $global:AllManagedItems = $managedItems
+  return $global:AllManagedItems
+}
 
 function Add-XamlEvent{
   param(
