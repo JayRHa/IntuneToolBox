@@ -276,18 +276,26 @@ function Set-UiAction{
     }
 
     Add-XamlEvent -object $WPFListViewGroupsViewAdd -event "Add_SelectionChanged" -scriptBlock {
-        if($WPFListViewGroupsViewAdd.SelectedIndex -eq -1){$WPFButtonAddToGroup.IsEnabled = $false}else{$WPFButtonAddToGroup.IsEnabled = $true}
+        Add-ObjectToGroup
     }
 
-    
-    Add-XamlEvent -object $WPFButtonAddToGroup -event "Add_Click" -scriptBlock {
-        $params = @{
-            "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($WPFListViewGroupsViewAdd.SelectedItem.Id)"
-        }
-        New-MgGroupMemberByRef -GroupId $global:SelectedGroupId.GroupObjectId -BodyParameter $params
-        $WPFBorderAddItem.Visibility="Collapsed"
-        Get-GroupViewResetted
+    Add-XamlEvent -object $WPFListViewGroupsViewAdd -event "Add_MouseDoubleClick" -scriptBlock {
+        $global:SelectedGroupId = $WPFListViewGroupsViewAdd.SelectedItem
+        Open-GroupView -groupId $global:SelectedGroupId.GroupObjectId | Out-Null
     }
+
+    Add-XamlEvent -object $WPFButtonAddToGroup -event "Add_Click" -scriptBlock {
+        Add-ObjectToGroup
+    }
+}
+
+function Add-ObjectToGroup{
+    $params = @{
+        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($WPFListViewGroupsViewAdd.SelectedItem.Id)"
+    }
+    New-MgGroupMemberByRef -GroupId $global:SelectedGroupId.GroupObjectId -BodyParameter $params
+    $WPFBorderAddItem.Visibility="Collapsed"
+    Get-GroupViewResetted
 }
 
 function Get-GroupViewResetted {
@@ -318,13 +326,12 @@ function Get-NavigationGroupViewPageChange{
         [Parameter(Mandatory = $true)]  
         $selectedItem
     )
+    Hide-GroupViewAll
     switch($selectedItem){
         ItemGroupsOverview {
-            Hide-GroupViewAll
             $WPFGridGroupViewOverview.Visibility="Visible"
         }
         ItemGroupsMember {
-            Hide-GroupViewAll
             Add-InitGroupItemGridMember -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
             if($global:SelectedGroupId.GroupMembershipType -eq 'Dynamic'){
@@ -337,13 +344,11 @@ function Get-NavigationGroupViewPageChange{
             }
         }
         ItemGroupsPolicies {
-            Hide-GroupViewAll
             Add-InitGroupItemGridPolicies -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
-
         }
         ItemGroupsApps {
-            Hide-GroupViewAll
+            Add-InitGroupItemGridApps -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
         }
     }
@@ -477,5 +482,17 @@ function Set-UserInterface {
         $imagePath = ("$global:Path\.tmp\memberImg.png")
         [byte[]]$Bytes = [convert]::FromBase64String($iconGroupMemberUser)
         [System.IO.File]::WriteAllBytes($imagePath,$Bytes)
-        }
+    }
+
+    if(-not(Test-Path ("$global:Path\.tmp\policyImg.png"))) {
+        $imagePath = ("$global:Path\.tmp\policyImg.png")
+        [byte[]]$Bytes = [convert]::FromBase64String($iconGroupNavigationPolicies)
+        [System.IO.File]::WriteAllBytes($imagePath,$Bytes)
+    }
+
+    if(-not(Test-Path ("$global:Path\.tmp\appImg.png"))) {
+        $imagePath = ("$global:Path\.tmp\appImg.png")
+        [byte[]]$Bytes = [convert]::FromBase64String($iconGroupNavigationApplications)
+        [System.IO.File]::WriteAllBytes($imagePath,$Bytes)
+    }
 }

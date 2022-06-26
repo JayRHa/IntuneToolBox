@@ -295,7 +295,7 @@ function Add-InitGroupItemGridMember{
     if(($global:AllGroupMember).Count -eq 0 -or $loadNew) {
         Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
     }
-
+    
     $allGroupMembers = @()
     $allGroupMembers = $global:AllGroupMember
 
@@ -309,16 +309,33 @@ function Add-InitGroupItemGridPolicies{
     )
 
     if(($global:AllGroupPolicies).Count -eq 0 -or $loadNew) {
-        Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
+        Get-AllPolicies
     }
 
-    $allGroupMembers = @()
-    $allGroupMembers = $global:AllGroupMember
+    Get-AllGroupPolicies -groupId $global:SelectedGroupId.GroupObjectId
+    $groupPolicies = @()
+    $groupPolicies = $global:AllGroupPolicies
 
-    $items += $allGroupMembers | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+    $items += $groupPolicies | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
 	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
 }
 
+function Add-InitGroupItemGridApps{
+    param (
+        [boolean]$loadNew = $true
+    )
+
+    if(($global:AllGroupApps).Count -eq 0 -or $loadNew) {
+        Get-AllApps
+    }
+    
+    Get-AllGroupApps -groupId $global:SelectedGroupId.GroupObjectId
+    $groupApps = @()
+    $groupApps = $global:AllGroupApps
+    
+    $items += $groupApps | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
 
 
 
@@ -398,6 +415,77 @@ function Get-AllGroupMember {
     $global:AllGroupMember = @($items)
   }
 
+  function Get-AllPolicies{
+    $items = @()
+    Get-MgDeviceManagementDeviceConfiguration -All | ForEach-Object{
+
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\policyImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            ItemDetails                     = $_.CreatedDateTime
+            Id                              = $_.Id
+            Uri                             = $null
+            OperatinSystem                  = $null
+        }
+        $items += $param
+    }
+
+    $global:AllPolicies = @($items)
+}
+
 function Get-AllGroupPolicies{
-    
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId
+      )
+      
+      $global:AllGroupPolicies = @()
+      $global:AllPolicies | ForEach-Object {
+        $temp = $_
+        (Invoke-MgGraphRequest -Method GET -Uri ("https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/$($_.Id)/groupAssignments")).value | ForEach-Object{
+            if($_.targetGroupId -eq $groupId){$global:AllGroupPolicies += $temp}
+        }
+      }  
+}
+
+function Get-AllApps{
+    $exclude = "#microsoft.graph.managedAndroidStoreApp", "#microsoft.graph.managedIOSStoreApp"
+    $items = @()
+    Get-MgDeviceAppMgtMobileApp -All | Where-Object {-not ($_.AdditionalProperties.'@odata.type' -in $exclude)} | ForEach-Object{  
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\appImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            ItemDetails                     = $_.Publisher
+            Id                              = $_.Id
+            Uri                             = $null
+            OperatinSystem                  = $null
+        }
+        $items += $param
+    }
+    $global:AllApps = @($items)
+}
+
+function Get-AllGroupApps{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId
+      )
+      
+      $global:AllGroupApps = @()
+      $global:AllApps | ForEach-Object {
+        $temp = $_
+        (Invoke-MgGraphRequest -Method GET -Uri ("https://graph.microsoft.com/beta/deviceappmanagement/mobileApps/$($_.Id)/assignments")).value | ForEach-Object{
+            if($_.target.groupId -eq $groupId){$global:AllGroupApps += $temp}
+        }
+      }  
 }

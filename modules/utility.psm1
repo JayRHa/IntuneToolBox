@@ -24,8 +24,6 @@ function Start-Init {
   if(-not (Test-Path "$global:Path\.tmp")) {
     New-Item "$global:Path\.tmp" -Itemtype Directory
   }
-  $global:messageScreenText.Text = "Get All managed Items"
-  Get-AllManagedItems | out-null
 }
 
 function Get-AllManagedItems {
@@ -158,7 +156,6 @@ function Get-GraphAuthentication{
     Write-Error "Failed to connect to MSGraph"
     return $false
   }
-
   return $true
 }
 

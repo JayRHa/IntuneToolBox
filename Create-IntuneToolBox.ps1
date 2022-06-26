@@ -61,6 +61,9 @@ function Import-AllModules
 [array]$global:AllGroupsItemAddCollection = $null
 [array]$global:AllGroupMember = $null
 [array]$global:AllGroupPolicies = $null
+[array]$global:AllPolicies = $null
+[array]$global:AllGroupApps = $null
+[array]$global:AllApps = $null
 
 $global:Auth = $false
 $global:SelectedGroupId = ""
@@ -90,9 +93,6 @@ $global:formMainForm.add_Loaded({
     $global:formMainForm.Activate()
 })
 
-# Remove
-#Get-FormVariables
-
 # Init User interface
 $global:messageScreenText.Text = "Load User Interface"
 Set-UserInterface
@@ -104,6 +104,13 @@ Set-UiAction
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
 Set-LoginOrLogout
+
+$global:messageScreenText.Text = "Get all managed Items"
+Get-AllManagedItems | out-null
+$global:messageScreenText.Text = "Get all Configuration Profiles"
+Get-AllPolicies | out-null
+$global:messageScreenText.Text = "Get all Apps"
+Get-AllApps | out-null
 
 # Start Main Windows
 $global:formMainForm.ShowDialog() | out-null
