@@ -144,7 +144,7 @@ function Get-GraphAuthentication{
   }
 
   try {
-    Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","DeviceManagementApps.Read.All", "Device.Read.All"
+    Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","DeviceManagementApps.Read.All", "Device.Read.All", "DeviceManagementApps.ReadWrite.All"
   } catch {
     Write-Error "Failed to connect to MgGraph"
     return $false
@@ -156,6 +156,7 @@ function Get-GraphAuthentication{
     Write-Error "Failed to connect to MSGraph"
     return $false
   }
+  Select-MgProfile -Name "beta"
   return $true
 }
 

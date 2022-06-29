@@ -39,6 +39,7 @@ Function Hide-All{
     $WPFGridGroupView.Visibility = 'Hidden'
     $WPFGridGroupCreation.Visibility = 'Hidden'
     $WPFGridGroupViewOverview.Visibility="Hidden"
+    $WPFGridAbout.Visibility="Hidden"
 }
 
 Function Hide-GroupViewAll{
@@ -46,7 +47,8 @@ Function Hide-GroupViewAll{
     $WPFGridGroupListView.Visibility="Hidden"
     $WPFBorderAddItem.Visibility="Collapsed"
     $WPFTextboxSearchGroupView.Text = ""
-    $WPFTextboxSearcAddToGroup.Text = ""
+    $WPFTextboxSearchAddToGroup.Text = ""
+    $WPFComboboxAssignmentType.Visibility="Collapsed"
 }
 
 
@@ -114,6 +116,7 @@ function Set-UiAction{
     
     Add-XamlEvent -object $WPFListViewMenu -event "Add_SelectionChanged" -scriptBlock {
         if(-not $global:auth) {return}
+        if($WPFListViewMenu.SelectedIndex -eq -1) {return}
         Get-NavigationMainPageChange -selectedItem $WPFListViewMenu.SelectedItem.Name
     }
     
@@ -134,6 +137,13 @@ function Set-UiAction{
         $WPFButtonOpenMenu.Visibility = "Visible"
         $WPFGridContentFrame.ColumnDefinitions[0].Width = 60
     }
+
+    Add-XamlEvent -object $WPFButtonAbout -event "Add_Click" -scriptBlock {
+        Hide-All
+        $WPFListViewMenu.SelectedIndex = -1
+        $WPFGridAbout.Visibility="Visible"
+    }
+
 
       
     ## Groups
@@ -230,12 +240,19 @@ function Set-UiAction{
     }
 
     Add-XamlEvent -object $WPFListViewGroupMenu -event "Add_SelectionChanged" -scriptBlock {
-        Get-NavigationGroupViewPageChange -selectedItem $WPFListViewGroupMenu.SelectedItem.Name
+        Get-NavigationGroupViewPageChange
+    }
+
+    Add-XamlEvent -object $WPFListViewGroupsViewSelection -event "Add_SelectionChanged" -scriptBlock {
+        if($WPFListViewGroupsViewSelection.SelectedIndex -eq -1) {$WPFButtonRemoveGroupMember.IsEnabled = $false}
+        else {$WPFButtonRemoveGroupMember.IsEnabled = $true}
     }
 
     Add-XamlEvent -object $WPFButtonRemoveGroupMember -event "Add_Click" -scriptBlock {
-        Invoke-MgGraphRequest -Method DELETE -Uri ("https://graph.microsoft.com/v1.0/groups/$($global:SelectedGroupId.GroupObjectId)/members/$($WPFListViewGroupsViewSelection.SelectedItem.Id)/"+'$ref')
-        Get-GroupViewResetted
+        Show-MessageBoxInWindow -text "Are you shure that you want to delete the group assignment?" -button1text "Yes" -button2text "No"
+        $global:message.Add_ButtonClicked({
+            Remove-ObjectFromGroup
+        })
     }
 
     Add-XamlEvent -object $WPFButtonAddGroupMember -event "Add_Click" -scriptBlock {
@@ -258,8 +275,8 @@ function Set-UiAction{
         }
     }
 
-    Add-XamlEvent -object $WPFTextboxSearcAddToGroup -event "Add_TextChanged" -scriptBlock {
-        Search-InItemAddList -searchString $WPFTextboxSearcAddToGroup.Text
+    Add-XamlEvent -object $WPFTextboxSearchAddToGroup -event "Add_TextChanged" -scriptBlock {
+        Search-InItemAddList -searchString $WPFTextboxSearchAddToGroup.Text
     }
 
     Add-XamlEvent -object $WPFComboboxMigrationType -event "Add_SelectionChanged" -scriptBlock {
@@ -276,12 +293,13 @@ function Set-UiAction{
     }
 
     Add-XamlEvent -object $WPFListViewGroupsViewAdd -event "Add_SelectionChanged" -scriptBlock {
-        Add-ObjectToGroup
+        if($WPFListViewGroupsViewAdd.SelectedIndex -eq -1) {$WPFButtonAddToGroup.IsEnabled = $false}
+        else {$WPFButtonAddToGroup.IsEnabled = $true}
     }
 
     Add-XamlEvent -object $WPFListViewGroupsViewAdd -event "Add_MouseDoubleClick" -scriptBlock {
-        $global:SelectedGroupId = $WPFListViewGroupsViewAdd.SelectedItem
-        Open-GroupView -groupId $global:SelectedGroupId.GroupObjectId | Out-Null
+        # $global:SelectedGroupId = $WPFListViewGroupsViewAdd.SelectedItem
+        # Open-GroupView -groupId $global:SelectedGroupId.GroupObjectId | Out-Null
     }
 
     Add-XamlEvent -object $WPFButtonAddToGroup -event "Add_Click" -scriptBlock {
@@ -290,19 +308,60 @@ function Set-UiAction{
 }
 
 function Add-ObjectToGroup{
-    $params = @{
-        "@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$($WPFListViewGroupsViewAdd.SelectedItem.Id)"
+    switch($WPFListViewGroupMenu.SelectedItem.Name){
+        ItemGroupsMember {
+            Add-DirectoryItemToGroup -groupId $global:SelectedGroupId.GroupObjectId -item $($WPFListViewGroupsViewAdd.SelectedItem.Id)
+        }
+        ItemGroupsPolicies {
+            Add-PolicyToGroup -policyId $($WPFListViewGroupsViewAdd.SelectedItem.Id) -groupId $global:SelectedGroupId.GroupObjectId -assignment $WPFComboboxAssignmentType.Text
+        }
+        ItemGroupsApps {
+            Add-AppToGroup -appId $WPFListViewGroupsViewAdd.SelectedItem.Id -groupId $global:SelectedGroupId.GroupObjectId -assignment $WPFComboboxAssignmentType.Text -intent $WPFComboboxAssignmentTypeApp.SelectedItem.Id
+        }
     }
-    New-MgGroupMemberByRef -GroupId $global:SelectedGroupId.GroupObjectId -BodyParameter $params
     $WPFBorderAddItem.Visibility="Collapsed"
     Get-GroupViewResetted
 }
 
-function Get-GroupViewResetted {
-    Add-InitGroupItemGrid -loadNew $true
-    $WPFTextboxSearcAddToGroup.Text = ""
-    Get-AllManagedItems
+function Remove-ObjectFromGroup{
+    switch($WPFListViewGroupMenu.SelectedItem.Name){
+        ItemGroupsMember {
+            Remove-DirectoryItemFromGroup -groupId $($global:SelectedGroupId.GroupObjectId) -item  $($WPFListViewGroupsViewSelection.SelectedItem.Id)
+        }
+        ItemGroupsPolicies {
+            Remove-PolicyFromGroup -groupId $($global:SelectedGroupId.GroupObjectId) -policyId $($WPFListViewGroupsViewSelection.SelectedItem.Id)
+        }
+        ItemGroupsApps {
+            Remove-AppFromGroup -groupId $($global:SelectedGroupId.GroupObjectId) -appId $($WPFListViewGroupsViewSelection.SelectedItem.Id)
+        }
+    }
+    Get-GroupViewResetted
 }
+
+function Get-GroupViewResetted {
+    switch($WPFListViewGroupMenu.SelectedItem.Name){
+        ItemGroupsMember {
+            Get-AllManagedItems
+            Add-InitGroupItemGridMember -loadNew $true 
+            $WPFListViewGroupsViewSelection.SelectedIndex -= -1
+            $WPFTextboxSearchAddToGroup.Text = ""
+        }
+        ItemGroupsPolicies {
+            Add-InitGroupItemGridPolicies -loadNew $true -init $true
+            $WPFListViewGroupsViewSelection.SelectedIndex -= -1
+            $WPFTextboxSearchAddToGroup.Text = ""
+            Get-AllManagedItems
+        }
+        ItemGroupsApps {
+            Add-InitGroupItemGridApps -loadNew $true -init $true
+            $WPFListViewGroupsViewSelection.SelectedIndex -= -1
+            $WPFTextboxSearchAddToGroup.Text = ""
+            Get-AllManagedItems
+        }
+    }
+}
+
+
 function Get-NavigationMainPageChange{
     param(
         [Parameter(Mandatory = $true)]  
@@ -322,18 +381,15 @@ function Get-NavigationMainPageChange{
     }
 }
 function Get-NavigationGroupViewPageChange{
-    param(
-        [Parameter(Mandatory = $true)]  
-        $selectedItem
-    )
     Hide-GroupViewAll
-    switch($selectedItem){
+    switch($WPFListViewGroupMenu.SelectedItem.Name){
         ItemGroupsOverview {
             $WPFGridGroupViewOverview.Visibility="Visible"
         }
         ItemGroupsMember {
             Add-InitGroupItemGridMember -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
+            $WPFStackSyncAllDevices.Visibility="Visible"
             if($global:SelectedGroupId.GroupMembershipType -eq 'Dynamic'){
                 $WPFButtonRemoveGroupMember.IsEnabled=$false
                 $WPFButtonAddGroupMember.IsEnabled=$false
@@ -346,10 +402,23 @@ function Get-NavigationGroupViewPageChange{
         ItemGroupsPolicies {
             Add-InitGroupItemGridPolicies -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
+            $WPFStackSyncAllDevices.Visibility="Collapsed"
+            $WPFButtonRemoveGroupMember.IsEnabled=$true
+            $WPFButtonAddGroupMember.IsEnabled=$true
+            $WPFComboboxAssignmentType.Visibility="Visible"
+            $WPFComboboxAssignmentType.SelectedIndex = 0
+            $WPFComboboxAssignmentTypeApp.Visibility="Collapsed"
         }
         ItemGroupsApps {
             Add-InitGroupItemGridApps -loadNew $false
             $WPFGridGroupListView.Visibility="Visible"
+            $WPFStackSyncAllDevices.Visibility="Collapsed"
+            $WPFButtonRemoveGroupMember.IsEnabled=$true
+            $WPFButtonAddGroupMember.IsEnabled=$true
+            $WPFComboboxAssignmentType.Visibility="Visible"
+            $WPFComboboxAssignmentType.SelectedIndex = 0
+            $WPFComboboxAssignmentTypeApp.Visibility="Visible"
+            $WPFComboboxAssignmentTypeApp.SelectedIndex = 0
         }
     }
 }
@@ -365,6 +434,7 @@ function Get-GroupCreationView{
     $WPFStackPanelGroupName.Visibility = 'Visible'
     $WPFStackPanelGroupDescription.Visibility = 'Visible'
     $WPFStackPanelOsFilter.Visibility = 'Collapsed'
+    
     
     $WPFCbWindows.IsChecked= $false
     $WPFCbMacOs.IsChecked= $false
@@ -411,6 +481,7 @@ function Set-UserInterface {
     $iconCopyGroup = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAAAuklEQVRIidWUyxGCMBRFz2PcUYI60o99pAUsQTqQSmwHB1pg/Vw4aCZDhATEyVll8rn3fZJA6ohvoah6jRFU6FDM45LfAbLYyHwIHESo19Z9U1S92tmvnoHLbhicrv1ZoEbYhwi4NXf5ZCDcQsVfx77XPLM3hopbHCcNfsUsg6bMpSlz75tZbLCE7a6py1hJ7Lm5X8n/MrAjHCKP+QDTb3Jw03z43sl2JVLoFui0kwYoJtKkRdTERJUGT1tnMuEQslpmAAAAAElFTkSuQmCC"
     $iconAdd = "iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAABmJLR0QA/wD/AP+gvaeTAAAAbUlEQVRoge3Xuw3AIAwAUSdtlmDLzMCWWYKabJBPYXSy7tVI9okGIiRJUr7Wx2x9zOw5e/aAVQyhMYTGEBpDaAyhMYSmTMj25dCKZ/iT6zxe9yxzI+n8WP1kCI0hNIbQGEJjCI0hNGVCJElSRNy7aQ6wukLO8wAAAABJRU5ErkJggg=="
     $iconDelete = "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"
+    $iconAbout = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABmJLR0QA/wD/AP+gvaeTAAABZklEQVRIidWVPU7DQBCFn4OSAhEkqCkRByA0cAMoiKMoSsEZOAcEcQQOkdQcgZ86/KTB9EiRaCDio/CEWM6uvQlVnrSytfP2Pc/s7lhadURFQaAmqSWpKWlf0o6F3iU9SupL6kdR9LWwM9AGRpTjFWgtIrwGXAcI53EFVEIMXOJvllHdRgwMHbxeSFlc4tsO7pbF8oh94jXcNW9b/ARIbBzbXMfBfyE9HHMGXQcZoG7xJJuVzW161nSmutlNaXoqNwbQ7IhmseFZ86eVNWh4yHlMJJ3be9fDOZibAcaedPM4M/4h8OnhjJc1uDHuLvBRwHMaPAUY7Bn3toQ3nOpm9+A+oP4jex6V8O5cBoMAgwmApPUS3rwWUCW9JP/FCNdFM5NW0coMz4cf4LQwN9KuuKzBRUnpJKAC9Ioy8Xz5JSHtOmMUE7Ynz4CvzZT+MquSYqW9paFZP0okPSg9LYMoir6Dv3zl8AsKfI8ggolmqwAAAABJRU5ErkJggg=="
 
 
     # Add image to UI
@@ -424,6 +495,9 @@ function Set-UserInterface {
     $WPFImgRefresh.source = Get-DecodeBase64Image -ImageBase64 $iconGroupRefresh
     $WPFImgMaxGroups.source = Get-DecodeBase64Image -ImageBase64 $iconGroupPaging
     $WPFImgGroupCount.source = Get-DecodeBase64Image -ImageBase64 $iconGroupCount
+    $WPFImgButtonAbout.source = Get-DecodeBase64Image -ImageBase64 $iconAbout
+
+    
     
     # Group Overview
     $WPFImgDeleteGroup.source = Get-DecodeBase64Image -ImageBase64 $iconDeleteGroupt
@@ -459,6 +533,18 @@ function Set-UserInterface {
     $valueGroupType = "Security" # Add M365
     foreach ($value in $valueGroupType) { $WPFComboboxGroupType.items.Add($value) | Out-Null }
     $WPFComboboxGroupType.SelectedIndex = 0
+
+    $valueAssignmentType = "Include", "Exclude"
+    foreach ($value in $valueAssignmentType) { $WPFComboboxAssignmentType.items.Add($value) | Out-Null }
+    $WPFComboboxAssignmentType.SelectedIndex = 0
+
+    $valueAssignmentTypeApp = "required", "available", "uninstall", "availableWithoutEnrollment"
+    foreach ($value in $valueAssignmentTypeApp) { $WPFComboboxAssignmentTypeApp.items.Add($value) | Out-Null }
+    $WPFComboboxAssignmentTypeApp.SelectedIndex = 0
+
+
+    
+    
 
     # Enable icons
     $WPFItemHome.IsEnabled = $false
