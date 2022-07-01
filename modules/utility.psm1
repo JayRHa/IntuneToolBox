@@ -117,7 +117,7 @@ function Get-GraphAuthentication{
   $GraphPowershellModulePath = "$global:Path/Microsoft.Graph.psd1"
   if (-not (Get-Module -ListAvailable -Name 'Microsoft.Graph')) {
 
-      if (-Not (Test-Path $GraphPowershellModulePath)) {
+      if (-Not (lTest-Path $GraphPowershelModulePath)) {
           Write-Error "Microsoft.Graph.Intune.psd1 is not installed on the system check: https://docs.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0"
           Return
       }
@@ -219,6 +219,7 @@ function Get-DecodeBase64Image {
   return $objBitmapImage
 }
 
+
 function Get-ProfilePicture {
   param (
       [Parameter(Mandatory = $true)]
@@ -232,4 +233,89 @@ function Get-ProfilePicture {
   $WPFImgButtonLogIn.source = Get-DecodeBase64Image -ImageBase64 $iconButtonLogIn
   $WPFImgButtonLogIn.Width="35"
   $WPFImgButtonLogIn.Height="35"
+}
+########################################################################################
+########################################### UI  ########################################
+########################################################################################
+function New-XamlScreen{
+  param (
+      [Parameter(Mandatory = $true)]
+      [String]$xamlPath
+  )
+  $inputXML = Get-Content $xamlPath
+  [xml]$xaml = $inputXML -replace 'mc:Ignorable="d"', '' -replace "x:N", 'N' -replace '^<Win.*', '<Window'
+  $reader = (New-Object System.Xml.XmlNodeReader $xaml)
+
+  try {
+      $form = [Windows.Markup.XamlReader]::Load( $reader )
+  }
+  catch {
+      Write-Host "Unable to load Windows.Markup.XamlReader. Double-check syntax and ensure .net is installed."
+  }
+  return @($form, $xaml)
+}
+
+Function Get-FormVariables {
+  if ($global:ReadmeDisplay -ne $true) {Write-host "If you need to reference this display again, run Get-FormVariables" -ForegroundColor Yellow; $global:ReadmeDisplay = $true}
+  Write-host "Found the following interactable elements from our form" -ForegroundColor Cyan
+  get-variable WPF*
+}
+
+function Show-MessageBoxWindow{
+  param (
+      [String]$titel="Intune Tool Box",
+      [Parameter(Mandatory = $true)]
+      [String]$text,
+      [String]$button1text="",
+      [String]$button2text=""
+
+  )
+
+  if($button1text -eq ""){$global:button1.Visibility = "Hidden"}else{$global:button1.Visibility = "Visible"}
+  if($button2text -eq ""){$global:button2.Visibility = "Hidden"}else{$global:button2.Visibility = "Visible"}
+
+  $global:messageScreenTitle.Text = $titel
+  $global:messageScreenText = $text
+  $global:button1.Content = "Yes"
+  $global:button2.Content = "No"
+  $global:messageScreen.Show() | Out-Null
+}
+
+function Show-MessageBoxInWindow{
+  param (
+      [String]$titel="Intune Tool Box",
+      [Parameter(Mandatory = $true)]
+      [String]$text,
+      [String]$button1text="",
+      [String]$button2text="",
+      [String]$messageSeverity="Information"
+
+  )
+
+  $global:message = [SimpleDialogs.Controls.MessageDialog]::new()		    
+  $global:message.MessageSeverity = $messageSeverity
+  $global:message.Title = $titel
+  if($button1text -eq ""){$global:message.ShowFirstButton = $false}else{$global:message.ShowSecondButton = $true}
+  if($button2text -eq ""){$message.ShowSecondButton = $false}else{$global:message.ShowSecondButton = $true}
+  $global:message.FirstButtonContent = $button1text
+  $global:message.SecondButtonContent = $button2text
+
+  $global:message.TitleForeground = "White"
+  $global:message.Background = "#FF1B1A19"
+  $global:message.Message = $text	
+  [SimpleDialogs.DialogManager]::ShowDialogAsync($($global:formMainForm), $global:message)
+
+  $global:message.Add_ButtonClicked({
+    $buttonArgs  = [SimpleDialogs.Controls.DialogButtonClickedEventArgs]$args[1]	
+    $buttonValues = $buttonArgs.Button
+    If($buttonValues -eq "FirstButton")
+      {
+        return $null
+      }
+    ElseIf($buttonValues -eq "SecondButton")
+      {
+                return $null
+      }				
+  })
+  return $null
 }

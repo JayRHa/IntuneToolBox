@@ -8,7 +8,7 @@ Helper for Group management Module
 #>
 
 ########################################################################################
-###################################### Functions #######################################
+################################### Search  Engine #####################################
 ########################################################################################
 function Search-Group{
     param(  
@@ -80,71 +80,56 @@ function Search-InItemAddList{
 	$WPFListViewGroupsViewAdd.ItemsSource = @($items)
 }
 
-function Get-ManagedGroups{
-    $allGroups = Get-MgGroup -All
-    $global:GroupObjects = $allGroups
-    return $allGroups
-}
-function Sync-AllDevicesInGroup{
-    param (
-        [Parameter(Mandatory = $true)]
-        [String]$groupId
-    )
+########################################################################################
+##################################### All Groups #######################################
+########################################################################################
 
-    $groupMember = Get-MgGroupMember -GroupId $groupId -All | Foreach-Object {
-        if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.device"){
-            $device = (Get-MgDevice -Filter "Id eq '$($_.Id)'")
-            try {
-                $intuneDeviceId = (Get-IntunemanagedDevice -Filter "azureADDeviceId eq '$($device.DeviceId)'").id
-                if($intuneDeviceId) {
-                    Invoke-IntuneManagedDeviceSyncDevice -managedDeviceId $intuneDeviceId | Out-Null
-                }
+function Add-InitGroupsGrid{
+    param (
+        [boolean]$clearGroupList = $true
+    )
+    
+    if(-not $global:auth) {return}
+    if(($global:AllGroupsCollection ).Count -eq 0 -or $clearGroupList) {
+        $global:AllGroupsCollection  = @()
+
+        $allGroups = Get-ManagedGroups
+        $allGroups = $allGroups | Sort-Object -Property DisplayName
+        
+        foreach ($group in $allGroups) {
+            $groupType = "Assigned"
+            if($group.groupTypes[0] -eq "DynamicMembership") {$groupType = "Dynamic"}
+            $colornumber= Get-Random -Maximum 9
+            # Create object
+            $param = [PSCustomObject]@{
+                GroupColor                  = $global:GroupColorSelection[$colornumber]
+                GroupNameShort              = ($($group.displayName).Substring(0,2)).ToUpper()
+                GroupName                   = $group.displayName
+                GroupObjectId               = $group.id
+                GroupMembershipType         = $groupType
+                GroupEmail                  = $group.mail
+                GroupSource                 = "Cloud"
             }
-            catch {
-                Write-Error "Sync of devices $($device.DeviceId) did not work."
-            }
+    
+            $global:AllGroupsCollection  += $param
         }
+
     }
+    Add-GroupsToGrid -groups $global:AllGroupsCollection 
 }
 
-function Get-GroupOverview{
+function Add-GroupsToGrid{
     param (
-        [Parameter(Mandatory = $true)]
-        [String]$groupId
+        $groups
     )
-
-    $group = Get-MgGroup -GroupId $groupId
-    $countDevices = 0
-    $countUser = 0
-    $countGroup = 0
-    $groupType = "Microsoft 365"
-    $groupTypeMemberShip = "Assigned"
-    if($group.SecurityEnabled -and $group.MailEnabled -eq $false){$groupType = "Security"}
-    if($group.GroupTypes[0] -eq "DynamicMembership") {$groupTypeMemberShip = "Dynamic"}
-
-    # Set ui info
-    $colornumber= Get-Random -Maximum 9
-    $WPFGridGroupPicture.Background = $global:GroupColorSelection[$colornumber]
-    $WPFGridGroupPicture1.Background = $global:GroupColorSelection[$colornumber]
-    $WPFTextGroupnameShort.Text = (($group.DisplayName).Substring(0,2)).ToUpper()
-    $WPFTextGroupnameShort1.Text = (($group.DisplayName).Substring(0,2)).ToUpper()
-    $WPFLableGroupOverviewName.Content = $group.DisplayName
-    $WPFLableGroupName.Content = $group.DisplayName
-    $WPFLabelSourceValue.Content = "Cloud"
-    $WPFLabelMemberShipTypeValue.Content = $groupTypeMemberShip
-    $WPFLabelTypeValue.Content = $groupType
-    $WPFLabelObjectIdValue.Content = $group.Id
-    $WPFLabelCreatedAtValue.Content = $group.CreatedDateTime
-    $groupMember = Get-MgGroupMember -GroupId $groupId -All | Foreach-Object {
-            if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.device") {$countDevices++}
-            if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.user") {$countUser++}
-            $countGroup++
-    }
-
-    $WPFLabelTotalGroupMembers.Content = "$countGroup Total"
-    $WPFLabelGroupMembersUser.Content = "$countUser User(s)"
-    $WPFLabelGroupMembersDevices.Content = "$countDevices Device(s)"   
+    $items = @()
+    $items += $groups | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewAllGroups.ItemsSource = $items
+	$WPFLabelCountGroups.Content = "$($items.count) Groups"
 }
+########################################################################################
+################################### Group Creation #####################################
+########################################################################################
 function Add-MgtGroup{
     param (
         [Parameter(Mandatory = $true)]
@@ -228,10 +213,15 @@ function Get-MigrateGroupMember{
     $newGroupMember = $newGroupMember | Sort-Object -Property uri -Uniqu 
     return ,$newGroupMember
 }
+########################################################################################
+################################### Group Overview #####################################
+########################################################################################
+function Get-ManagedGroups{
+    $allGroups = Get-MgGroup -All
+    $global:GroupObjects = $allGroups
+    return $allGroups
+}
 
-########################################################################################
-################################### User Interface #####################################
-########################################################################################
 function Open-GroupView{
     param (
         [Parameter(Mandatory = $true)]
@@ -247,136 +237,48 @@ function Open-GroupView{
     Get-AllGroupMember -GroupId $groupId
 }
 
-function Add-InitGroupsGrid{
+function Get-GroupOverview{
     param (
-        [boolean]$clearGroupList = $true
-    )
-    
-    if(-not $global:auth) {return}
-    if(($global:AllGroupsCollection ).Count -eq 0 -or $clearGroupList) {
-        $global:AllGroupsCollection  = @()
-
-        $allGroups = Get-ManagedGroups
-        $allGroups = $allGroups | Sort-Object -Property DisplayName
-        
-        foreach ($group in $allGroups) {
-            $groupType = "Assigned"
-            if($group.groupTypes[0] -eq "DynamicMembership") {$groupType = "Dynamic"}
-            $colornumber= Get-Random -Maximum 9
-            # Create object
-            $param = [PSCustomObject]@{
-                GroupColor                  = $global:GroupColorSelection[$colornumber]
-                GroupNameShort              = ($($group.displayName).Substring(0,2)).ToUpper()
-                GroupName                   = $group.displayName
-                GroupObjectId               = $group.id
-                GroupMembershipType         = $groupType
-                GroupEmail                  = $group.mail
-                GroupSource                 = "Cloud"
-            }
-    
-            $global:AllGroupsCollection  += $param
-        }
-
-    }
-    Add-GroupsToGrid -groups $global:AllGroupsCollection 
-}
-
-function Add-GroupsToGrid{
-    param (
-        $groups
-    )
-    $items = @()
-    $items += $groups | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-	$WPFListViewAllGroups.ItemsSource = $items
-	$WPFLabelCountGroups.Content = "$($items.count) Groups"
-}
-
-function Add-InitGroupItemGridMember{
-    param (
-        [boolean]$loadNew = $true
+        [Parameter(Mandatory = $true)]
+        [String]$groupId
     )
 
-    if(($global:AllGroupMember).Count -eq 0 -or $loadNew) {
-        Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
-    }
-    
-    $allGroupMembers = @()
-    $allGroupMembers = $global:AllGroupMember
+    $group = Get-MgGroup -GroupId $groupId
+    $countDevices = 0
+    $countUser = 0
+    $countGroup = 0
+    $groupType = "Microsoft 365"
+    $groupTypeMemberShip = "Assigned"
+    if($group.SecurityEnabled -and $group.MailEnabled -eq $false){$groupType = "Security"}
+    if($group.GroupTypes[0] -eq "DynamicMembership") {$groupTypeMemberShip = "Dynamic"}
 
-    $items += $allGroupMembers | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+    # Set ui info
+    $colornumber= Get-Random -Maximum 9
+    $WPFGridGroupPicture.Background = $global:GroupColorSelection[$colornumber]
+    $WPFGridGroupPicture1.Background = $global:GroupColorSelection[$colornumber]
+    $WPFTextGroupnameShort.Text = (($group.DisplayName).Substring(0,2)).ToUpper()
+    $WPFTextGroupnameShort1.Text = (($group.DisplayName).Substring(0,2)).ToUpper()
+    $WPFLableGroupOverviewName.Content = $group.DisplayName
+    $WPFLableGroupName.Content = $group.DisplayName
+    $WPFLabelSourceValue.Content = "Cloud"
+    $WPFLabelMemberShipTypeValue.Content = $groupTypeMemberShip
+    $WPFLabelTypeValue.Content = $groupType
+    $WPFLabelObjectIdValue.Content = $group.Id
+    $WPFLabelCreatedAtValue.Content = $group.CreatedDateTime
+    $groupMember = Get-MgGroupMember -GroupId $groupId -All | Foreach-Object {
+            if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.device") {$countDevices++}
+            if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.user") {$countUser++}
+            $countGroup++
+    }
+
+    $WPFLabelTotalGroupMembers.Content = "$countGroup Total"
+    $WPFLabelGroupMembersUser.Content = "$countUser User(s)"
+    $WPFLabelGroupMembersDevices.Content = "$countDevices Device(s)"   
 }
 
-function Add-InitGroupItemGridPolicies{
-    param (
-        [boolean]$loadNew = $true,
-        [boolean]$init = $false
-    )
-
-    if(($global:AllPolicies).Count -eq 0 -or $init) {
-        Get-AllPolicies
-    }
-
-    if(($global:AllGroupPolicies).Count -eq 0 -or $loadNew) {
-        Get-AllGroupPolicies -groupId $global:SelectedGroupId.GroupObjectId
-    }
-    
-    $groupPolicies = @()
-    $groupPolicies = $global:AllGroupPolicies
-
-    $items += $groupPolicies | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
-}
-
-function Add-InitGroupItemGridApps{
-    param (
-        [boolean]$loadNew = $true,
-        [boolean]$init = $false
-    )
-
-    if(($global:AllApps).Count -eq 0 -or $init) {
-        Get-AllApps
-    }
-
-    if(($global:AllGroupApps).Count -eq 0 -or $loadNew) {
-        Get-AllGroupApps -groupId $global:SelectedGroupId.GroupObjectId
-    }
-    
-    $groupApps = @()
-    $groupApps = $global:AllGroupApps
-    
-    $items += $groupApps | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
-}
-
-
-
-function Add-InitGroupItemAddGrid{
-    $itemsToAdd = $null
-
-    switch($WPFListViewGroupMenu.SelectedItem.Name){
-        ItemGroupsMember {
-            $itemsToAdd = $global:AllManagedItems | Where-Object `
-            { -not ($_.Id -in $global:AllGroupMember.id) -and `
-            -not ($_.Id -like $global:SelectedGroupId.GroupObjectId) -and `
-            -not ($_.GroupTypes -eq 'Dynamic')}
-        }
-        ItemGroupsPolicies {
-            $itemsToAdd = $global:AllPolicies | Where-Object `
-            { -not ($_.Id -in $global:AllGroupPolicies.id)}
-        }
-        ItemGroupsApps {
-            $itemsToAdd = $global:AllApps | Where-Object `
-            { -not ($_.Id -in $global:AllGroupApps.id)}
-        }
-    }
-
-    $itemsToAdd = $itemsToAdd | Sort-Object -Property ItemName
-    $global:AllGroupsItemAddCollection = $itemsToAdd
-    $items += $itemsToAdd | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
-    $WPFListViewGroupsViewAdd.ItemsSource = @($items)
-}
-
+########################################################################################
+#################################### Group Member ######################################
+########################################################################################
 function Get-AllGroupMember {
     param(
       [Parameter(Mandatory = $true)]  
@@ -442,84 +344,74 @@ function Get-AllGroupMember {
       }
     $global:AllGroupMember = @($items)
 }
+function Sync-AllDevicesInGroup{
+    param (
+        [Parameter(Mandatory = $true)]
+        [String]$groupId
+    )
 
-  function Get-AllPolicies{
-    $items = @()
-    Get-MgDeviceManagementDeviceConfiguration -All | ForEach-Object{
-
-        $param = [PSCustomObject]@{
-            ItemImg                         = ("$global:Path\.tmp\policyImg.png")
-            ImgVisible                      = "Visible"
-            GridColor                       = $null
-            GroupNameShort                  = $null
-            GridVisible                     = "Collapsed"
-            ItemName                        = $_.DisplayName
-            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
-            ItemId                          = $_.Id
-            ItemDetails                     = $_.CreatedDateTime
-            ItemInfo                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
-            Id                              = $_.Id
-            Uri                             = $null
-            OperatinSystem                  = $null
-            Include                         = $null
+    $groupMember = Get-MgGroupMember -GroupId $groupId -All | Foreach-Object {
+        if ($_.AdditionalProperties["@odata.type"] -eq "#microsoft.graph.device"){
+            $device = (Get-MgDevice -Filter "Id eq '$($_.Id)'")
+            try {
+                $intuneDeviceId = (Get-IntunemanagedDevice -Filter "azureADDeviceId eq '$($device.DeviceId)'").id
+                if($intuneDeviceId) {
+                    Invoke-IntuneManagedDeviceSyncDevice -managedDeviceId $intuneDeviceId | Out-Null
+                }
+            }
+            catch {
+                Write-Error "Sync of devices $($device.DeviceId) did not work."
+            }
         }
-        $items += $param
-    }
-
-    $global:AllPolicies = @($items)
-}
-
-function Get-AllGroupPolicies{
-    param(
-        [Parameter(Mandatory = $true)]  
-        $groupId
-      )
-    $global:AllGroupPolicies = @()
-    Get-IntuneDeviceConfigurationPolicy -Expand assignments| Where-Object {$_.assignments -match $groupId} | ForEach-Object {
-        $assignment = $true
-        $id = $_.id
-
-        if(($_.assignments.target) | Where {$_.groupId -eq $groupId  -and $_."@odata.type" -eq "#microsoft.graph.exclusionGroupAssignmentTarget"}){ $assignment = $false}
-        $global:AllGroupPolicies += $global:AllPolicies | Where-Object {$_.Id -eq $id}
-        ($global:AllGroupPolicies | Where-Object {$_.Id -eq $id}).Include = $assignment
     }
 }
-function Get-AllApps{
-    $exclude = "#microsoft.graph.managedAndroidStoreApp", "#microsoft.graph.managedIOSStoreApp"
-    $items = @()
-    Get-MgDeviceAppMgtMobileApp -All | Where-Object {-not ($_.AdditionalProperties.'@odata.type' -in $exclude)} | ForEach-Object{  
-        $param = [PSCustomObject]@{
-            ItemImg                         = ("$global:Path\.tmp\appImg.png")
-            ImgVisible                      = "Visible"
-            GridColor                       = $null
-            GroupNameShort                  = $null
-            GridVisible                     = "Collapsed"
-            ItemName                        = $_.DisplayName
-            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
-            ItemId                          = $_.Id
-            ItemDetails                     = $_.Publisher
-            ItemInfo                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
-            Id                              = $_.Id
-            Uri                             = $null
-            OperatinSystem                  = $null
+
+function Add-InitGroupItemGridMember{
+    param (
+        [boolean]$loadNew = $true
+    )
+
+    if(($global:AllGroupMember).Count -eq 0 -or $loadNew) {
+        Get-AllGroupMember -groupId $global:SelectedGroupId.GroupObjectId 
+    }
+    
+    $allGroupMembers = @()
+    $allGroupMembers = $global:AllGroupMember
+
+    $items += $allGroupMembers | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+############## Add ##############
+function Add-InitGroupItemAddGrid{
+    $itemsToAdd = $null
+
+    switch($WPFListViewGroupMenu.SelectedItem.Name){
+        ItemGroupsMember {
+            $itemsToAdd = $global:AllManagedItems | Where-Object `
+            { -not ($_.Id -in $global:AllGroupMember.id) -and `
+            -not ($_.Id -like $global:SelectedGroupId.GroupObjectId) -and `
+            -not ($_.GroupTypes -eq 'Dynamic')}
         }
-        $items += $param
+        ItemGroupsPolicies {
+            $itemsToAdd = $global:AllPolicies | Where-Object `
+            { -not ($_.Id -in $global:AllGroupPolicies.id)}
+        }
+        ItemGroupsCompliancePolicies {
+            $itemsToAdd = $global:AllCompliancePolicies | Where-Object `
+            { -not ($_.Id -in $global:AllGroupCompliancePolicies.id)}
+        }
+        ItemGroupsApps {
+            $itemsToAdd = $global:AllApps | Where-Object `
+            { -not ($_.Id -in $global:AllGroupApps.id)}
+        }
     }
-    $global:AllApps = @($items)
-}
 
-function Get-AllGroupApps{
-    param(
-        [Parameter(Mandatory = $true)]  
-        $groupId
-      )
-    $global:AllGroupApps = @()
-    Get-IntuneMobileApp -Expand assignments | Where-Object {$_.assignments -match $groupId} | ForEach-Object {
-        $id = $_.id
-        $global:AllGroupApps += $global:AllApps | Where-Object {$_.Id -eq $id}
-    }
+    $itemsToAdd = $itemsToAdd | Sort-Object -Property ItemName
+    $global:AllGroupsItemAddCollection = $itemsToAdd
+    $items += $itemsToAdd | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+    $WPFListViewGroupsViewAdd.ItemsSource = @($items)
 }
-
 function Add-DirectoryItemToGroup {
     param(
         [Parameter(Mandatory = $true)]  
@@ -542,6 +434,84 @@ function Remove-DirectoryItemFromGroup{
         $item
       )
     Invoke-MgGraphRequest -Method DELETE -Uri ("https://graph.microsoft.com/v1.0/groups/$groupId/members/$item/"+'$ref')
+}
+
+########################################################################################
+##################################### Policies #########################################
+########################################################################################
+function Get-AllPolicies{
+    $items = @()
+    Get-MgDeviceManagementDeviceConfiguration -All | ForEach-Object{
+
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\policyImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            ItemId                          = $_.Id
+            ItemDetails                     = $null
+            ItemInfo                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            Id                              = $_.Id
+            Uri                             = $null
+            OperatinSystem                  = $null
+            AssignmentId                    = $null
+        }
+        $items += $param
+    }
+
+    $global:AllPolicies = @($items)
+}
+function Get-AllGroupPolicies{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId
+      )
+    $global:AllGroupPolicies = @()
+
+    Get-IntuneDeviceConfigurationPolicy -Expand assignments| Where-Object {$_.assignments -match $groupId} | ForEach-Object {
+        $id = $_.id
+        $assignment = $null
+        $policyAssignment = $null
+
+        $_.assignments | ForEach-Object {
+            if($_.target.groupId -eq $groupId){
+                if($_.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget"){
+                    $assignment = "Exclude"
+                }
+                elseif ($_.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget"){
+                    $assignment = "Include"
+                }
+                $policyAssignment = ($global:AllPolicies | Where-Object {$_.Id -eq $id}) | ConvertTo-Json | ConvertFrom-Json
+                $policyAssignment.ItemDetails = $assignment
+                $policyAssignment.AssignmentId = $_.id
+                $global:AllGroupPolicies += $policyAssignment 
+            }
+        }
+    }
+}
+function Add-InitGroupItemGridPolicies{
+    param (
+        [boolean]$loadNew = $true,
+        [boolean]$init = $false,
+        $groupId
+    )
+
+    if(($global:AllPolicies).Count -eq 0 -or $init) {
+        Get-AllPolicies
+    }
+
+    if(($global:AllGroupPolicies).Count -eq 0 -or $loadNew) {
+        Get-AllGroupPolicies -groupId $groupId
+    }
+    
+    $groupPolicies = @()
+    $groupPolicies = $global:AllGroupPolicies
+
+    $items += $groupPolicies | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
 }
 
 function Add-PolicyToGroup {
@@ -578,6 +548,208 @@ function Remove-PolicyFromGroup{
     }
 }
 
+
+########################################################################################
+############################### Compliance Policies ####################################
+########################################################################################
+function Get-AllCompliancePolicies{
+    $items = @()
+    Get-MgDeviceManagementDeviceCompliancePolicy -All | ForEach-Object{ 
+
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\compPolicyImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            ItemId                          = $_.Id
+            ItemDetails                     = $null
+            ItemInfo                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            Id                              = $_.Id
+            Uri                             = $null
+            OperatinSystem                  = $null
+            AssignmentId                    = $null
+        }
+        $items += $param
+    }
+
+    $global:AllCompliancePolicies = @($items)
+}
+function Get-AllGroupCompliancePolicies{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId
+      )
+    $global:AllGroupCompliancePolicies = @()
+
+    Get-IntuneDeviceCompliancePolicy -Expand assignments| Where-Object {$_.assignments -match $groupId} | ForEach-Object {
+        $id = $_.id
+        $assignment = $null
+        $compPolicyAssignment = $null
+
+        $_.assignments | ForEach-Object {
+            if($_.target.groupId -eq $groupId){
+                if($_.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget"){
+                    $assignment = "Exclude"
+                }
+                elseif ($_.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget"){
+                    $assignment = "Include"
+                }
+                $compPolicyAssignment = ($global:AllCompliancePolicies | Where-Object {$_.Id -eq $id}) | ConvertTo-Json | ConvertFrom-Json
+                $compPolicyAssignment.ItemDetails = $assignment
+                $compPolicyAssignment.AssignmentId = $_.id
+                $global:AllGroupCompliancePolicies += $compPolicyAssignment 
+            }
+        }
+    }
+}
+function Add-InitGroupItemGridCompliancePolicies{
+    param (
+        [boolean]$loadNew = $true,
+        [boolean]$init = $false,
+        $groupId
+    )
+
+    if(($global:AllCompliancePolicies).Count -eq 0 -or $init) {
+        Get-AllCompliancePolicies
+    }
+
+    if(($global:AllGroupCompliancePolicies).Count -eq 0 -or $loadNew) {
+        Get-AllGroupCompliancePolicies -groupId $groupId
+    }
+    
+    $groupCompPolicies = @()
+    $groupCompPolicies = $global:AllGroupCompliancePolicies
+
+    $items += $groupCompPolicies | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+function Add-CompliancePolicyToGroup {
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId,
+        [Parameter(Mandatory = $true)]  
+        $policyId,
+        [parameter(Mandatory=$true)]
+        [string]$assignment
+      )
+
+      $compPolicyObject = $null
+      $compPolicyObject = New-Object PSObject
+      if($assignment -eq "Include"){$compPolicyObject | Add-Member NoteProperty '@odata.type' '#microsoft.graph.groupAssignmentTarget'}
+      else{$compPolicyObject | Add-Member NoteProperty '@odata.type' '#microsoft.graph.exclusionGroupAssignmentTarget'}
+      $compPolicyObject | Add-Member NoteProperty 'groupId' $groupId
+
+      # Check if all deovices or user assigned
+      New-DeviceManagement_DeviceCompliancePolicies_Assignments -deviceCompliancePolicyId $policyId -target $compPolicyObject
+}
+
+
+function Remove-CompliancePolicyFromGroup{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId,
+        [Parameter(Mandatory = $true)]  
+        $policyId
+    )
+
+    Get-DeviceManagement_DeviceCompliancePolicies_Assignments -deviceCompliancePolicyId $policyId | Foreach-Object {
+        if($_.target.groupId -eq $groupId) {Remove-DeviceManagement_DeviceCompliancePolicies_Assignments -deviceCompliancePolicyAssignmentId  $_.id -deviceCompliancePolicyId $policyId}
+    }
+}
+
+########################################################################################
+####################################### Apps ###########################################
+########################################################################################
+function Get-AllApps{
+    $exclude = "#microsoft.graph.managedAndroidStoreApp", "#microsoft.graph.managedIOSStoreApp"
+    $items = @()
+    Get-MgDeviceAppMgtMobileApp -All | Where-Object {-not ($_.AdditionalProperties.'@odata.type' -in $exclude)} | ForEach-Object{  
+        $param = [PSCustomObject]@{
+            ItemImg                         = ("$global:Path\.tmp\appImg.png")
+            ImgVisible                      = "Visible"
+            GridColor                       = $null
+            GroupNameShort                  = $null
+            GridVisible                     = "Collapsed"
+            ItemName                        = $_.DisplayName
+            ItemType                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            ItemId                          = $_.Id
+            ItemDetails                     = $null
+            ItemInfo                        = ($_.AdditionalProperties.'@odata.type').replace("#microsoft.graph.","")
+            Id                              = $_.Id
+            Uri                             = $null
+            OperatinSystem                  = $null
+            AssignmentId                    = $null
+        }
+        $items += $param
+    }
+    $global:AllApps = @($items)
+}
+
+function Add-InitGroupItemGridApps{
+    param (
+        [boolean]$loadNew = $true,
+        [boolean]$init = $false,
+        $groupId
+    )
+
+    if(($global:AllApps).Count -eq 0 -or $init) {
+        Get-AllApps
+    }
+
+    if(($global:AllGroupApps).Count -eq 0 -or $loadNew) {
+        Get-AllGroupApps -groupId $groupId
+    }
+    
+    $groupApps = @()
+    $groupApps = $global:AllGroupApps
+    $items += $groupApps | Select-Object -First $([int]$($WPFComboboxGridCount.SelectedItem))
+	$WPFListViewGroupsViewSelection.ItemsSource = @($items)
+}
+
+function Get-AllGroupApps{
+    param(
+        [Parameter(Mandatory = $true)]  
+        $groupId
+      )
+    $global:AllGroupApps = @()
+    Get-IntuneMobileApp -Expand assignments | Where-Object {$_.assignments -match $groupId} | ForEach-Object {
+        $id = $_.id
+        $assignment = $null
+        $appAssignment = $null
+        $_.assignments | ForEach-Object {
+            if($_.target.groupId -eq $groupId){
+                if($_.intent -eq "required" -and $_.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget"){
+                    $assignment = "Exclude (required)"
+                }
+                elseif ($_.intent -eq "available" -and $_.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget"){
+                    $assignment = "Exclude (available)"
+                }
+                elseif ($_.intent -eq "uninstall" -and $_.target.'@odata.type' -eq "#microsoft.graph.exclusionGroupAssignmentTarget" ){
+                    $assignment = "Exclude (uninstall)"
+                }
+                elseif ($_.intent -eq "required" -and $_.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget"){
+                    $assignment = "Include (required)"
+                }
+                elseif ($_.intent -eq "available" -and $_.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget"){
+                    $assignment = "Include (available)"
+                }
+                elseif ($_.intent -eq "uninstall" -and $_.target.'@odata.type' -eq "#microsoft.graph.groupAssignmentTarget" ){
+                    $assignment = "Include (uninstall)"
+                }
+    
+    
+                $appAssignment = ($global:AllApps | Where-Object {$_.Id -eq $id}) | ConvertTo-Json | ConvertFrom-Json
+                $appAssignment.ItemDetails = $assignment
+                $appAssignment.AssignmentId = $_.id
+                $global:AllGroupApps += $appAssignment  
+            }
+        }
+    }
+}
 function Add-AppToGroup {
     param(
         [Parameter(Mandatory = $true)]  
@@ -598,18 +770,16 @@ function Add-AppToGroup {
 
       # Check if all deovices or user assigned
 
-      New-IntuneMobileAppAssignment -mobileAppId $appId -intent 'required' -target $appObject
+      New-IntuneMobileAppAssignment -mobileAppId $appId -intent $intent -target $appObject
 }
 
 function Remove-AppFromGroup{
     param(
         [Parameter(Mandatory = $true)]  
-        $groupId,
+        $assignmentId,
         [Parameter(Mandatory = $true)]  
         $appId
     )
 
-    Get-IntuneMobileAppAssignment -mobileAppId $appId | Foreach-Object {
-        if($_.target.groupId -eq $groupId) {Remove-IntuneMobileAppAssignment -mobileAppAssignmentId $_.id -mobileAppId $appId}
-    }
+    Remove-IntuneMobileAppAssignment -mobileAppAssignmentId $assignmentId -mobileAppId $appId
 }

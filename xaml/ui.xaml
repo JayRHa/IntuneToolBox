@@ -43,32 +43,37 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Border Margin="0,30,30,7" BorderBrush="#A19F9D" BorderThickness="1"  Grid.Column="1" Width="200" HorizontalAlignment="Right" Height="200" VerticalAlignment="Top">
-                        <Image  HorizontalAlignment="Right"  VerticalAlignment="Top" Width="200" Height="200"  />
+                        <Image  x:Name="ImgBlog" HorizontalAlignment="Right"  VerticalAlignment="Top" Width="200" Height="200"  />
                     </Border>
                     <StackPanel>
                         <Label Content="Intune Tool Box V 1.0" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF" FontSize="36"/>
-                        <Label Content="(c) 2022 by Jannik Reinhard" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF"/>
-                        <Label Content="Get more information about intune tool box in my blog post or via the read.me." HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF"/>
+                        <Label Content="(c) 2022 by Jannik Reinhard (MIT License)" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF"/>
+                        <TextBlock HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF">
+                            Get more information about intune tool box in my
+                            <Hyperlink NavigateUri="http://stackoverflow.com">blog post</Hyperlink>
+                            or via the
+                            <Hyperlink NavigateUri="http://stackoverflow.com">readme</Hyperlink> on git.
+                        </TextBlock>
                         <Label Content="Check out my social media profiles:" HorizontalAlignment="Left" Margin="10,30,0,0" VerticalAlignment="Top" Foreground="#DDFFFFFF" FontSize="18"/>
                         <StackPanel Orientation="Horizontal">
-                            <Border Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1"  Grid.Column="1" HorizontalAlignment="Right">
+                            <Button x:Name="ButtonAboutWordpress" Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" Background="#FF1B1A19">
                                 <StackPanel Orientation="Horizontal">
-                                    <Image x:Name="ImgWordpress"  HorizontalAlignment="Right"  VerticalAlignment="Top" Width="20" Height="20"  />
+                                    <Image x:Name="ImgWordpress" Width="20" Height="20"/>
                                     <Label Content="Website" Foreground="#DDFFFFFF"/>
                                 </StackPanel>
-                            </Border>
-                            <Border Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1"  Grid.Column="1" HorizontalAlignment="Right">
+                            </Button>
+                            <Button x:Name="ButtonAboutTwitter" Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" Background="#FF1B1A19">
                                 <StackPanel Orientation="Horizontal">
                                     <Image x:Name="ImgTwitter"  HorizontalAlignment="Right"  VerticalAlignment="Top" Width="20" Height="20"  />
                                     <Label Content="Twitter" Foreground="#DDFFFFFF"/>
                                 </StackPanel>
-                            </Border>
-                            <Border Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1"  Grid.Column="1" HorizontalAlignment="Right">
+                            </Button>
+                            <Button x:Name="ButtonAboutLinkedIn" Margin="20,0,0,0" BorderBrush="#A19F9D" BorderThickness="1" Grid.Column="1" HorizontalAlignment="Right" Background="#FF1B1A19">
                                 <StackPanel Orientation="Horizontal">
                                     <Image x:Name="ImgLinkedIn"  HorizontalAlignment="Right"  VerticalAlignment="Top" Width="20" Height="20"  />
                                     <Label Content="LinkedIn" Foreground="#DDFFFFFF"/>
                                 </StackPanel>
-                            </Border>
+                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -87,10 +92,10 @@
                                     <TranslateTransform/>
                                 </TransformGroup>
                             </Grid.RenderTransform>
-                            <Button x:Name="ButtonOpenMenu" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#323130" BorderThickness="0,0,0,0">
+                            <Button x:Name="ButtonOpenSideMenu" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#323130" BorderThickness="0,0,0,0">
                                 <Image x:Name="ImgButtonOpenMenue" HorizontalAlignment="Center" Width="15" Height="15" />
                             </Button>
-                            <Button x:Name="ButtonCloseMenu" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#323130" BorderThickness="0,0,0,0">
+                            <Button x:Name="ButtonCloseSideMenu" Visibility="Collapsed" HorizontalAlignment="Right" VerticalAlignment="Top" Background="#323130" BorderThickness="0,0,0,0">
                                 <Image x:Name="ImgButtonCloseMenue" HorizontalAlignment="Center" Width="15" Height="15" />
                             </Button>
                         </Grid>
@@ -182,12 +187,12 @@
 
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <Image Width="20" x:Name="ImgNewGroup" Height="18"/>
-                            <Button x:Name="ButtonNewGroup" Content="New group" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
+                            <Button x:Name="ButtonCreateNewGroup" Content="New group" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
                         </StackPanel>
 
                         <StackPanel Margin="5" Orientation="Horizontal">
                             <Image Width="20" x:Name="ImgRefresh" Height="18"/>
-                            <Button x:Name="ButtonRefresh" Content="Refresh" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
+                            <Button x:Name="ButtonRefreshGroupOverview" Content="Refresh" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -374,21 +379,21 @@
                                                 </Style>
                                             </GridViewColumn.HeaderContainerStyle>
                                         </GridViewColumn>
-                                        <GridViewColumn Width="200" Header="Id" DisplayMemberBinding="{Binding ItemId}">
-                                            <GridViewColumn.HeaderContainerStyle>
-                                                <Style TargetType="{x:Type GridViewColumnHeader}">
-                                                    <Setter Property="Background" Value="#FF1B1A19" />
-                                                    <Setter Property="Foreground" Value="White" />
-                                                    <Setter Property="BorderBrush" Value="#FF1B1A19" />
-                                                </Style>
-                                            </GridViewColumn.HeaderContainerStyle>
-                                        </GridViewColumn>
                                         <GridViewColumn Width="200" Header="Details" DisplayMemberBinding="{Binding ItemDetails}">
                                             <GridViewColumn.HeaderContainerStyle>
                                                 <Style TargetType="{x:Type GridViewColumnHeader}">
                                                     <Setter Property="Background" Value="#FF1B1A19" />
                                                     <Setter Property="Foreground" Value="White" />
                                                     <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                                    <Setter Property="BorderBrush" Value="#FF1B1A19" />
+                                                </Style>
+                                            </GridViewColumn.HeaderContainerStyle>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="200" Header="Id" DisplayMemberBinding="{Binding ItemId}">
+                                            <GridViewColumn.HeaderContainerStyle>
+                                                <Style TargetType="{x:Type GridViewColumnHeader}">
+                                                    <Setter Property="Background" Value="#FF1B1A19" />
+                                                    <Setter Property="Foreground" Value="White" />
                                                     <Setter Property="BorderBrush" Value="#FF1B1A19" />
                                                 </Style>
                                             </GridViewColumn.HeaderContainerStyle>
@@ -471,7 +476,7 @@
                             </StackPanel>
                             <StackPanel Margin="5" Orientation="Horizontal">
                                 <Image Width="20" x:Name="ImgCopyGroup" Height="18"/>
-                                <Button x:Name="ButtonCopyGroup" Content="Dupplicate group" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
+                                <Button x:Name="ButtonCopyGroup" Content="Duplicate group" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Background="#FF1B1A19" Foreground="White" BorderThickness="0,0,0,0"/>
                             </StackPanel>
                             <StackPanel Margin="5" Orientation="Horizontal">
                                 <Image Width="20" x:Name="ImgDeleteGroup" Height="18"/>
@@ -547,6 +552,12 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Image Width="20" x:Name="ImgGroupNavigationPolicies" Height="20"/>
                                     <Label x:Name="LabelGroupNavigationPolicies" Content="Configuration Profiles" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </ListViewItem>
+                            <ListViewItem x:Name="ItemGroupsCompliancePolicies" Height="40" IsEnabled="True">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Width="20" x:Name="ImgGroupNavigationCompliancePolicies" Height="20"/>
+                                    <Label x:Name="LabelGroupNavigationCompliancePolicies" Content="Compliance Policies" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="White" Margin="0,5,0,0"/>
                                 </StackPanel>
                             </ListViewItem>
                             <ListViewItem x:Name="ItemGroupsApps" Height="40" IsEnabled="True">
