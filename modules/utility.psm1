@@ -17,13 +17,15 @@ function Start-Init {
     [System.Reflection.Assembly]::LoadFrom("libaries\ControlzEx.dll")                 | out-null  
     [System.Reflection.Assembly]::LoadFrom("libaries\SimpleDialogs.dll")              | out-null
   }catch{
-    Write-Error "Loading from dll's was not sucessfull"
+    Write-Error "Loading from dll's was not sucessfull:" $_.Exception
+    return $false
   }
 
   # Create temp folder
   if(-not (Test-Path "$global:Path\.tmp")) {
     New-Item "$global:Path\.tmp" -Itemtype Directory
   }
+  return $true
 }
 
 function Get-AllManagedItems {

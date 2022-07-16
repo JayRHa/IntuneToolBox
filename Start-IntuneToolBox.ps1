@@ -6,6 +6,7 @@ Description:
 Tool box with different intune helper
 Release notes:
 Version 1.0: Init
+Version 1.1: Bugfix for dll loading error
 #> 
 ###########################################################################################################
 ############################################ Functions ####################################################
@@ -33,6 +34,7 @@ function Get-MessageScreen{
 
 function Import-AllModules
 {
+
     foreach($file in (Get-Item -path "$global:Path\modules\*.psm1"))
     {      
         $fileName = [IO.Path]::GetFileName($file) 
@@ -41,11 +43,11 @@ function Import-AllModules
         $module = Import-Module $file -PassThru -Force -Global -ErrorAction SilentlyContinue
         if($module)
         {
-          $global:messageScreenText.Text = "Module $($module.Name) loaded successfully"
+            $global:messageScreenText.Text = "Module $($module.Name) loaded successfully"
         }
         else
         {
-          $global:messageScreenText.Text = "Failed to load module $file"
+            $global:messageScreenText.Text = "Failed to load module $file"
         }
     }
 }
@@ -83,7 +85,12 @@ $global:messageScreenText.Text = "Starting initializing Intune Tool Box"
 Import-AllModules
 
 #Init 
-Start-Init
+if (-not (Start-Init)){
+    Write-Error "Error while loading the dlls. Exit the script"
+    Write-Warning "Unblock all dlls and restart the powershell seassion"
+    $global:messageScreen.Hide()
+    Exit
+}
 
 # Load main windows
 $returnMainForm = New-XamlScreen -xamlPath ("$global:Path\xaml\ui.xaml")
