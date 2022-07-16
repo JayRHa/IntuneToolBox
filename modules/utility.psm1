@@ -13,9 +13,9 @@ function Start-Init {
   try {
     [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')  				| out-null
     [System.Reflection.Assembly]::LoadWithPartialName('presentationframework') 				| out-null
-    [System.Reflection.Assembly]::LoadFrom("libaries\MahApps.Metro.dll")       				| out-null
-    [System.Reflection.Assembly]::LoadFrom("libaries\ControlzEx.dll")                 | out-null  
-    [System.Reflection.Assembly]::LoadFrom("libaries\SimpleDialogs.dll")              | out-null
+    [System.Reflection.Assembly]::LoadFrom("$global:Path\libaries\MahApps.Metro.dll")       				| out-null
+    [System.Reflection.Assembly]::LoadFrom("$global:Path\libaries\ControlzEx.dll")                 | out-null  
+    [System.Reflection.Assembly]::LoadFrom("$global:Path\libaries\SimpleDialogs.dll")              | out-null
   }catch{
     Write-Error "Loading from dll's was not sucessfull:" $_.Exception
     return $false
