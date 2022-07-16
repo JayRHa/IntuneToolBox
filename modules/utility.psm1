@@ -17,7 +17,7 @@ function Start-Init {
     [System.Reflection.Assembly]::LoadFrom("$global:Path\libaries\ControlzEx.dll")                 | out-null  
     [System.Reflection.Assembly]::LoadFrom("$global:Path\libaries\SimpleDialogs.dll")              | out-null
   }catch{
-    Write-Error "Loading from dll's was not sucessfull:" $_.Exception
+    Write-Error "Loading from dll's was not sucessfull:"
     return $false
   }
 
