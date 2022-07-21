@@ -146,7 +146,7 @@ function Get-GraphAuthentication{
   }
 
   try {
-    Connect-MgGraph -Scopes "User.Read.All","Group.ReadWrite.All","DeviceManagementApps.Read.All", "Device.Read.All", "DeviceManagementApps.ReadWrite.All"
+    Connect-MgGraph -Scopes "User.Read.All","User.Read", "Group.ReadWrite.All", "Device.Read.All", "DeviceManagementApps.ReadWrite.All", "DeviceManagementConfiguration.ReadWrite.All", "DeviceManagementManagedDevices.ReadWrite.All"
   } catch {
     Write-Error "Failed to connect to MgGraph"
     return $false
