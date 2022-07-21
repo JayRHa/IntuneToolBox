@@ -231,10 +231,15 @@ function Get-ProfilePicture {
   if (-Not (Test-Path $path)) {
       Get-MgUserPhotoContent -UserId $upn -OutFile $path
   }
-  $iconButtonLogIn = [convert]::ToBase64String((get-content $path -encoding byte))
-  $WPFImgButtonLogIn.source = Get-DecodeBase64Image -ImageBase64 $iconButtonLogIn
-  $WPFImgButtonLogIn.Width="35"
-  $WPFImgButtonLogIn.Height="35"
+
+  if (Test-Path $path) {
+    try{
+      $iconButtonLogIn = [convert]::ToBase64String((get-content $path -encoding byte))
+      $WPFImgButtonLogIn.source = Get-DecodeBase64Image -ImageBase64 $iconButtonLogIn
+      $WPFImgButtonLogIn.Width="35"
+      $WPFImgButtonLogIn.Height="35"
+    }catch{}
+  }
 }
 ########################################################################################
 ########################################### UI  ########################################
