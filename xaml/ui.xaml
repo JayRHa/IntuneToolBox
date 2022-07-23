@@ -7,9 +7,8 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:dialogs="clr-namespace:SimpleDialogs.Controls;assembly=SimpleDialogs"
         mc:Ignorable="d"
-        Title="Intune Tool Box- V 1.0 by Jannik Reinhard" Height="550" Width="1000" MinWidth="1000" MinHeight="550" MaxWidth="1000" MaxHeight="550"
-        WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
+        Title="Intune Tool Box- V 1.1 by Jannik Reinhard" Height="550" Width="1000" MinWidth="1000" MinHeight="550"
+        WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -100,7 +99,6 @@
                             </Button>
                         </Grid>
                         <ListView x:Name="ListViewMenu" Foreground="#323130" Background="#323130" ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0,0,0,0">
-
                             <ListViewItem x:Name="ItemHome" Height="40" IsSelected="True" IsEnabled="True">
                                 <StackPanel Orientation="Horizontal">
                                     <Image Width="20" x:Name="ImgItemHome" HorizontalAlignment="Center" Margin="15,0,0,0"/>
@@ -619,7 +617,13 @@
             </Grid>
 
             <Grid x:Name="GridHeader" Height="50" VerticalAlignment="Top" Background="#252423">
-                <Label Content="Intune Tool Box" HorizontalAlignment="Left" VerticalAlignment="Center"  Foreground="White" FontSize="16" Margin="10,0,0,0"/>
+                <Button x:Name="ButtonHome" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#323130" BorderThickness="0,0,0,0" >
+                    <StackPanel Orientation="Horizontal">
+                        <Image x:Name="ImgHome" HorizontalAlignment="Center" Width="20" Height="20" />
+                        <Label Content="Intune Tool Box" Foreground="White"/>
+                    </StackPanel>
+                </Button>
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="ButtonAbout" Visibility="Visible" HorizontalAlignment="Left" VerticalAlignment="Center" Background="#323130" BorderThickness="0,0,0,0">
                         <Image x:Name="ImgButtonAbout" HorizontalAlignment="Center" Width="20" Height="20" />

@@ -6,7 +6,11 @@ Description:
 Tool box with different intune helper
 Release notes:
 Version 1.0: Init
-Version 1.1: Bugfix for dll loading error
+Version 1.1:
+- Bugfix for dll loading error
+- UI optiomization
+- IMprove stability
+
 #> 
 ###########################################################################################################
 ############################################ Functions ####################################################
