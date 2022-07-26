@@ -10,6 +10,8 @@ Version 1.1:
 - Bugfix for dll loading error
 - UI optiomization
 - IMprove stability
+Version 1.1.1:
+- Fix loging from accounts withour profile picture
 
 #> 
 ###########################################################################################################
@@ -117,7 +119,12 @@ Set-UiActionButton
 
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
-Set-LoginOrLogout
+if(-not(Set-LoginOrLogout)){
+    Write-Error "Error during authentication"
+    Write-Warning "Please try again"
+    $global:messageScreen.Hide()
+    Exit 
+}
 
 $global:messageScreenText.Text = "Get all managed Items"
 Get-AllManagedItems | out-null
@@ -127,7 +134,6 @@ $global:messageScreenText.Text = "Get all Compliance Policies"
 Get-AllCompliancePolicies | out-null
 $global:messageScreenText.Text = "Get all Apps"
 Get-AllApps | out-null
-
 
 # Start Main Windows
 $global:formMainForm.ShowDialog() | out-null
