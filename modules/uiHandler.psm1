@@ -510,6 +510,9 @@ function Set-UserInterface {
     $WPFImgSearchSearchAddToGroup.source = Get-DecodeBase64Image -ImageBase64 $iconSearch
 
     #About
+    Add-XamlEvent -object $WPFBlogPost -event "Add_Click" -scriptBlock {Start-Process "https://jannikreinhard.com/2022/07/07/intune-tool-box-rebuild-of-intune-in-powershell/"} 
+    Add-XamlEvent -object $WPFReadme -event "Add_Click" -scriptBlock {Start-Process "https://github.com/JayRHa/IntuneToolBox"} 
+
     $WPFImgTwitter.source = Get-DecodeBase64Image -ImageBase64 $iconTwitter
     $WPFImgWordpress.source = Get-DecodeBase64Image -ImageBase64 $iconWordpress
     $WPFImgLinkedIn.source = Get-DecodeBase64Image -ImageBase64 $iconLinkedIn
