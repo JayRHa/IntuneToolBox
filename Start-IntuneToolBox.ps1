@@ -119,7 +119,7 @@ Set-UiActionButton
 
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
-if(-not(Set-LoginOrLogout)){
+if(Set-LoginOrLogout -eq $false){
     Write-Error "Error during authentication"
     Write-Warning "Please try again"
     $global:messageScreen.Hide()
