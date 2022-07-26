@@ -12,6 +12,8 @@ Version 1.1:
 - IMprove stability
 Version 1.1.1:
 - Fix loging from accounts withour profile picture
+Version 1.1.2:
+- Authentication stabilization
 
 #> 
 ###########################################################################################################
@@ -119,7 +121,8 @@ Set-UiActionButton
 
 # Authentication
 $global:messageScreenText.Text = "Login to Microsoft Graph (Auth Windows could be in the backround)"
-if(Set-LoginOrLogout -eq $false){
+$auth = Set-LoginOrLogout
+if($auth  -eq $false){
     Write-Error "Error during authentication"
     Write-Warning "Please try again"
     $global:messageScreen.Hide()

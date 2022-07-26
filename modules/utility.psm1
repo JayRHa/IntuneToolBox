@@ -121,7 +121,7 @@ function Get-GraphAuthentication{
 
       if (-Not (Test-Path $GraphPowershelModulePath)) {
           Write-Error "Microsoft.Graph.Intune.psd1 is not installed on the system check: https://docs.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0"
-          Return
+          return $false
       }
       else {
           Import-Module "$GraphPowershellModulePath"
@@ -129,7 +129,7 @@ function Get-GraphAuthentication{
 
           if (-not ($Success)) {
               Write-Error "Microsoft.Graph.Intune.psd1 is not installed on the system check: https://docs.microsoft.com/en-us/powershell/microsoftgraph/installation?view=graph-powershell-1.0"
-              Return
+              return $false
           }
       }
   }
@@ -146,7 +146,8 @@ function Get-GraphAuthentication{
   }
 
   try {
-    $connection =  Connect-MgGraph -Scopes "User.Read.All","User.Read", "Group.ReadWrite.All", "Device.Read.All", "DeviceManagementApps.ReadWrite.All", "DeviceManagementConfiguration.ReadWrite.All", "DeviceManagementManagedDevices.ReadWrite.All"
+    $graphLogin = Connect-MgGraph -Scopes "User.Read.All","User.Read", "Group.ReadWrite.All", "Device.Read.All", "DeviceManagementApps.ReadWrite.All", "DeviceManagementConfiguration.ReadWrite.All", "DeviceManagementManagedDevices.ReadWrite.All"
+    $connection = $?
   } catch {
     Write-Error "Failed to connect to MgGraph"
     return $false
@@ -154,12 +155,13 @@ function Get-GraphAuthentication{
   if(-not ($connection)) {return $false}
   
   try {
-    Connect-MSGraph -AdminConsent -ErrorAction Stop
+    $graphLogin = Connect-MSGraph -AdminConsent -ErrorAction Stop
   } catch {
     Write-Error "Failed to connect to MSGraph"
     return $false
   }
-  Select-MgProfile -Name "beta"
+  $graphLogin =  Select-MgProfile -Name "beta"
+
   return $true
 }
 
@@ -177,11 +179,12 @@ function Set-LoginOrLogout{
 
 
   $connectionStatus = Get-GraphAuthentication
+
   if(-not $connectionStatus) {
       [System.Windows.MessageBox]::Show('login Failed')
       return $false
   }
-  
+
   $global:auth = $true
 
 
@@ -196,7 +199,7 @@ function Set-LoginOrLogout{
   Write-Host "Organizsation Name: $($org.DisplayName)"
   Write-Host "------------------------------------------------------"	
   
-  Get-ProfilePicture -upn $upn
+  $return = Get-ProfilePicture -upn $upn
 
   #Set Login menue
   $WPFLableUPN.Content = $user.Account
