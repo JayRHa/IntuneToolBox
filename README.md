@@ -14,7 +14,7 @@ Build. Automate. Share.
 
 [Blog Post](https://jannikreinhard.com/2022/07/07/intune-tool-box-rebuild-of-intune-in-powershell/)
 <p align="left">
-  <a href="https://twitter.com/jannik_reinhard">
+  <a href="https://x.com/jannik_reinhard">
     <img src="https://img.shields.io/twitter/follow/jannik_reinhard?style=social" target="_blank" />
   </a>
     <a href="https://github.com/JayRHa">
@@ -22,6 +22,12 @@ Build. Automate. Share.
   </a>
 </p>
 ![Tool View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/groupView.png)
+
+<p>
+  <a href="https://jannikreinhard.com/">Blog</a> ·
+  <a href="https://www.linkedin.com/in/jannik-r/">LinkedIn</a> ·
+  <a href="https://x.com/jannik_reinhard">X</a>
+</p>
 
 ---
 
