@@ -20,7 +20,7 @@ Build. Automate. Share.
 
 ## What is this?
 
-This repository provides archived Microsoft Intune toolbox with administrative scripts and automation helpers.
+Archived Microsoft Intune toolbox with administrative scripts and automation helpers.
 
 > Browse the documentation below for setup notes, usage details, and project-specific context.
 
@@ -61,7 +61,7 @@ I think everyone who works with Intune on a daily basis knows the situation that
 ## How to execute the application
 * Download and unzip the whole folder <br/>
 ![Download View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/downloadGitHub.png)
-* Execute the Start-IntuneToolBox.ps1
+* Execute the Start-IntuneToolbox.ps1
 * Have fun
 
 ## Features
