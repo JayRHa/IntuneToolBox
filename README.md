@@ -13,7 +13,7 @@ Build. Automate. Share.
 [![Contributors](https://img.shields.io/github/contributors/JayRHa/IntuneToolbox?style=for-the-badge&logo=github&color=28a745)](https://github.com/JayRHa/IntuneToolbox/graphs/contributors)
 
 [Blog Post](https://jannikreinhard.com/2022/07/07/intune-tool-box-rebuild-of-intune-in-powershell/)
-![Tool View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/groupView.png)
+![Tool View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/groupView.png)
 
 <p>
   <a href="https://jannikreinhard.com/">Blog</a> ·
@@ -67,35 +67,35 @@ flowchart LR
 
 ## How to execute the application
 * Download and unzip the whole folder <br/>
-![Download View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/downloadGitHub.png)
+![Download View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/downloadGitHub.png)
 * Execute the Start-IntuneToolbox.ps1
 * Have fun
 
 ## Features
 ### Overall Environment View:
 On the start page you can get an overview of your complete environment and see how many clients are enrolled per OS.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/startPage.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/startPage.png)
 
 ### Group View:
 In this view you get an overview from all groups in your environment with all the features know from the Portal.<br/>
-![Groups View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/groupOverview.png)
+![Groups View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/groupOverview.png)
 
 ### Sync all devices:
 Sync all devices in a group with one simple click.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/syncAllDevices.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/syncAllDevices.png)
 
 ### Group Overview:
 I think you have often been in a situation where you wanted to see what is assigned to a group. Now you can easily see this in the overview.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/groupView.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/groupView.png)
 
 ### Migrate Group:
 With this function you can convert a user group into a device group or a device group into a user group. For this it is checked who is the owner of the device or which devices a certain user owns.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/migrateGroup.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/migrateGroup.png)
 
 ### Duplicate Group:
 Create a copy from a existing group. All member will be take over.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/copyGroup.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/copyGroup.png)
 
 ### Assign Items:
 You can assign configuration profiles, compliance policies or apps direct in the group view.<br/>
-![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/.images/addConfiguration.png)
+![Enviroment View](https://github.com/JayRHa/IntuneToolbox/blob/main/assets/addConfiguration.png)
