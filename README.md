@@ -1,18 +1,3 @@
-<!-- repo-standard:start -->
-# Intune Toolbox
-
-Archived Microsoft Intune toolbox with administrative scripts and automation helpers.
-
-| Area | Stack | Visibility |
-| --- | --- | --- |
-| Endpoint Management | PowerShell | Public archived |
-
-**Repository:** `JayRHa/intune-toolbox`  
-**Topics:** `microsoft-intune`, `endpoint-management`, `powershell`, `automation`, `admin-tools`, `archived`
-<!-- repo-standard:end -->
-
----
-
 # Intune Tool Box - Rebuild of Intune in PowerShell
 [Blog Post](https://jannikreinhard.com/2022/07/07/intune-tool-box-rebuild-of-intune-in-powershell/)
 <p align="left">
